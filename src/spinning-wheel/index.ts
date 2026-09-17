@@ -6,6 +6,7 @@ import { SpinningWheelMountProps } from "./types"
 export class SpinningWheel {
 	private readonly renderer = new Renderer()
 	private resizeTimerId: number | null = null
+	private resizeObserver?: ResizeObserver
 	private abortController?: AbortController
 	private isMounted = false
 
@@ -17,6 +18,11 @@ export class SpinningWheel {
 		this.isMounted = true
 
 		this.abortController = new AbortController()
+		this.resizeObserver = new ResizeObserver(() =>
+			requestAnimationFrame(() => {
+				this.onResize()
+			})
+		)
 		const { root, prizes, wheelColors } = props
 		this.renderer.setProps({
 			root,
@@ -30,6 +36,7 @@ export class SpinningWheel {
 		}
 
 		root.appendChild(element)
+		this.resizeObserver?.observe(root)
 		this.renderer.renderPrizes()
 		this.renderer.fitWheelIntoRoot()
 		this.setListeners()
@@ -49,19 +56,13 @@ export class SpinningWheel {
 		}
 		this.abortController?.abort()
 		this.abortController = undefined
+		this.resizeObserver?.disconnect()
+		this.resizeObserver = undefined
 	}
 
-	private setListeners() {
-		window.addEventListener(
-			"resize",
-			() => {
-				this.onWindowResize()
-			},
-			{ signal: this.abortController?.signal }
-		)
-	}
+	private setListeners() {}
 
-	private onWindowResize() {
+	private onResize() {
 		if (this.resizeTimerId !== null) {
 			clearTimeout(this.resizeTimerId)
 		}
