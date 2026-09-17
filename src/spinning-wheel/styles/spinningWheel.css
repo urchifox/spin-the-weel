@@ -30,8 +30,8 @@
 	aspect-ratio: 1/1;
 
 	width: 100%;
-	border-radius: 50%;
 	border: 1px solid var(--inset-shadow-color);
+	border-radius: 50%;
 	background: var(--wheel-gradient);
 	transition: transform 0.3s ease;
 
