@@ -96,16 +96,6 @@
 	background-repeat: no-repeat;
 }
 
-.spinning-wheel__prize-label {
-	position: absolute !important;
-	width: 1px !important;
-	height: 1px !important;
-	overflow: hidden !important;
-	clip: rect(0 0 0 0) !important;
-	clip-path: inset(50%) !important;
-	white-space: nowrap !important;
-}
-
 .spinning-wheel__border {
 	--border: 5%;
 	--shadow: var(--border) * 0.5;

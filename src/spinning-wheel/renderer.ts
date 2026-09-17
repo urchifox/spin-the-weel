@@ -61,8 +61,7 @@ export class Renderer {
 		const { id, name, image } = prize
 		const markup = `
 			<li class="spinning-wheel__prize">
-				<span class="spinning-wheel__prize-icon"></span>
-				<span class="spinning-wheel__prize-label"></span>
+				<span class="spinning-wheel__prize-icon" aria-hidden="true"></span>
 			</li>
 		`
 		const prizeElement = createElement(markup)
@@ -71,13 +70,7 @@ export class Renderer {
 		}
 
 		prizeElement.dataset.id = id
-		const labelElement = prizeElement.querySelector(
-			".spinning-wheel__prize-label"
-		)
-		if (isHtmlElement(labelElement)) {
-			labelElement.textContent = name
-		}
-
+		prizeElement.setAttribute("aria-label", name)
 		prizeElement.style.setProperty("--nth", `${index}`)
 		prizeElement.style.setProperty("--bg-image", `url("${CSS.escape(image)}")`)
 
