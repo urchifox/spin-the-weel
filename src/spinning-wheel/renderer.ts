@@ -1,5 +1,5 @@
-import { Prize, WheelColors } from "."
 import { createElement, isHtmlElement } from "../helpers/dom"
+import { Prize, WheelColors } from "./types"
 
 export type RendererProps = {
 	root: HTMLElement

@@ -1,26 +1,7 @@
 import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
 import { Renderer } from "./renderer"
-
-export type SpinningWheelProps = {
-	root: HTMLElement
-	prizes: Array<Prize>
-	wheelColors?: WheelColors
-}
-
-export type Prize = {
-	id: string
-	name: string
-	image: string
-	callback: () => unknown
-}
-
-export type WheelColors = {
-	hueStart?: number
-	hueEnd?: number
-	saturation?: number
-	lightness?: number
-}
+import { SpinningWheelProps } from "./types"
 
 export class SpinningWheel {
 	protected root: SpinningWheelProps["root"]
