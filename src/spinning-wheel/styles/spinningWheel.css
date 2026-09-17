@@ -67,24 +67,6 @@
 }
 
 .spinning-wheel__prize {
-	--nth: 0; /* fallback */
-
-	--sector-angle: calc(360deg / var(--prizes-count));
-	--half-angle: calc(var(--sector-angle) / 2);
-
-	--outer-radius: 48%; /* радиус колеса с небольшим отступом от края */
-	--fit: 0.94; /* запас между соседними иконками, 1 = впритык */
-
-	--cot-half: calc(1 / tan(var(--half-angle)));
-	--A: calc(var(--cot-half) + 2);
-	--denom: calc(sqrt(1 + var(--A) * var(--A)));
-
-	--icon-size: calc(2 * var(--outer-radius) * var(--fit) / var(--denom));
-	--inner-radius: calc(var(--icon-size) * var(--cot-half) / 2);
-
-	--x-offset: 50%;
-	--y-offset: calc((var(--inner-radius) / var(--icon-size) + 1) * 100%);
-
 	position: absolute;
 	top: 50%;
 

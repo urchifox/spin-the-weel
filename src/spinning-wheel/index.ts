@@ -61,11 +61,10 @@ export class SpinningWheel extends Component {
 		})
 
 		const segmentsCount = Math.max(prizesCount, 2)
-		this.element?.style.setProperty("--prizes-count", `${segmentsCount}`)
-		this.element?.style.setProperty(
-			"--wheel-gradient",
-			this.getGradient(segmentsCount)
-		)
+		const wheelProperties = this.calculateWheelProperties(segmentsCount)
+		for (const [key, value] of Object.entries(wheelProperties)) {
+			this.element?.style.setProperty(key, value)
+		}
 	}
 
 	private createPrizeElement(prize: Prize, index: number) {
@@ -85,6 +84,36 @@ export class SpinningWheel extends Component {
 		prizeElement.style.setProperty("--bg-image", `url(${image})`)
 
 		return prizeElement
+	}
+
+	private calculateWheelProperties(segmentsCount: number) {
+		const sectorAngle = 360 / segmentsCount
+		const halfAngle = sectorAngle / 2
+
+		const outerRadius = 48
+		const fit = 0.94
+		const halfAngleRad = (halfAngle * Math.PI) / 180
+
+		const cotHalf = 1 / Math.tan(halfAngleRad)
+		const A = cotHalf + 2
+		const denom = Math.sqrt(1 + A * A)
+
+		const iconSize = (2 * outerRadius * fit) / denom
+		const innerRadius = (iconSize * cotHalf) / 2
+
+		const xOffset = 50
+		const yOffset = (innerRadius / iconSize + 1) * 100
+
+		const gradient = this.getGradient(segmentsCount)
+
+		return {
+			"--prizes-count": segmentsCount.toString(),
+			"--icon-size": `${iconSize}%`,
+			"--sector-angle": `${sectorAngle}deg`,
+			"--x-offset": `${xOffset}%`,
+			"--y-offset": `${yOffset}%`,
+			"--wheel-gradient": gradient,
+		}
 	}
 
 	private getGradient(segmentsCount: number) {
