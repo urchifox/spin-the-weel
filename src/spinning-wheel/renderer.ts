@@ -68,8 +68,8 @@ export class Renderer {
 		const { id, name, image } = prize
 		const markup = `
 			<li class="spinning-wheel__prize" data-id="${id}">
-				<span class="spinning-wheel__icon"></span>
-				<span class="visually-hidden">${name}</span>
+				<span class="spinning-wheel__prize-icon"></span>
+				<span class="spinning-wheel__prize-label">${name}</span>
 			</li>
 		`
 		const prizeElement = createElement(markup)
