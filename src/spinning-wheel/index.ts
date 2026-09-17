@@ -1,47 +1,54 @@
 import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
 import { Renderer } from "./renderer"
-import { SpinningWheelProps } from "./types"
+import { SpinningWheelMountProps } from "./types"
 
 export class SpinningWheel {
-	protected root: SpinningWheelProps["root"]
-	private prizes: SpinningWheelProps["prizes"]
-
-	private renderer: Renderer
+	private readonly renderer = new Renderer()
 	private resizeTimerId: number | null = null
-	private abortControlled = new AbortController()
+	private abortController?: AbortController
+	private isMounted = false
 
-	constructor(props: SpinningWheelProps) {
+	mount(props: SpinningWheelMountProps) {
+		if (this.isMounted) {
+			console.warn("SpinningWheel is already mounted")
+			return
+		}
+		this.isMounted = true
+
+		this.abortController = new AbortController()
 		const { root, prizes, wheelColors } = props
-		this.root = root
-		this.prizes = prizes
-
-		this.renderer = new Renderer({
-			root: this.root,
-			prizes: this.prizes,
-			wheelColors: wheelColors ?? {},
+		this.renderer.setProps({
+			root,
+			prizes,
+			wheelColors,
 		})
-	}
 
-	mount() {
 		const element = this.renderer.createElement(markup)
 		if (element === null) {
 			return
 		}
 
-		this.root.appendChild(element)
+		root.appendChild(element)
 		this.renderer.renderPrizes()
 		this.renderer.fitWheelIntoRoot()
 		this.setListeners()
 	}
 
 	unmount() {
+		if (!this.isMounted) {
+			console.warn("SpinningWheel is not mounted")
+			return
+		}
+		this.isMounted = false
+
 		this.renderer.clear()
 		if (this.resizeTimerId !== null) {
 			clearTimeout(this.resizeTimerId)
 			this.resizeTimerId = null
 		}
-		this.abortControlled.abort()
+		this.abortController?.abort()
+		this.abortController = undefined
 	}
 
 	private setListeners() {
@@ -50,7 +57,7 @@ export class SpinningWheel {
 			() => {
 				this.onWindowResize()
 			},
-			{ signal: this.abortControlled.signal }
+			{ signal: this.abortController?.signal }
 		)
 	}
 

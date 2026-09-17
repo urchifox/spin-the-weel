@@ -1,24 +1,17 @@
 import { createElement, isHtmlElement } from "../helpers/dom"
-import { Prize, WheelColors } from "./types"
-
-export type RendererProps = {
-	root: HTMLElement
-	prizes: Array<Prize>
-	wheelColors: WheelColors
-}
+import { Prize, SpinningWheelMountProps } from "./types"
 
 export class Renderer {
-	private root: RendererProps["root"]
-	private prizes: RendererProps["prizes"]
-	private wheelColors: RendererProps["wheelColors"]
+	private root?: SpinningWheelMountProps["root"]
+	private prizes: SpinningWheelMountProps["prizes"] = []
+	private wheelColors?: SpinningWheelMountProps["wheelColors"]
 
 	private element?: HTMLElement
 
-	constructor(props: RendererProps) {
-		const { root, prizes, wheelColors } = props
-		this.root = root
-		this.prizes = prizes
-		this.wheelColors = wheelColors
+	setProps(props: SpinningWheelMountProps) {
+		this.root = props.root
+		this.prizes = props.prizes
+		this.wheelColors = props.wheelColors
 	}
 
 	clear() {
@@ -155,8 +148,8 @@ export class Renderer {
 		this.element.style.setProperty("--wheel-size", "")
 		this.element.style.setProperty("--root-size", "")
 
-		const rootWidth = this.root.clientWidth
-		const rootHeight = this.root.clientHeight
+		const rootWidth = this.root?.clientWidth ?? 0
+		const rootHeight = this.root?.clientHeight ?? 0
 
 		this.element.style.setProperty(
 			"--root-size",

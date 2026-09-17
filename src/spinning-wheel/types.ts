@@ -1,4 +1,4 @@
-export type SpinningWheelProps = {
+export type SpinningWheelMountProps = {
 	root: HTMLElement
 	prizes: Array<Prize>
 	wheelColors?: WheelColors
