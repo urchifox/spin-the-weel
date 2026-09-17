@@ -33,7 +33,7 @@ export const prizes = [
 		name: "Mystery Reward",
 		image: mysteryReward,
 		callback: () => {
-			console.log("Deposit Match Bonus")
+			console.log("Mystery Reward")
 		},
 	},
 ]
