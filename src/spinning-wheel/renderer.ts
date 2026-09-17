@@ -152,12 +152,12 @@ export class Renderer {
 
 		this.element.style.setProperty(
 			"--root-size",
-			`${Math.min(rootWidth, rootHeight)}px`
+			`${Math.max(0, Math.min(rootWidth, rootHeight))}px`
 		)
 
 		const wheelHeight = this.element.clientHeight
 		const heightDiff = rootHeight - wheelHeight
-		const wheelSize = Math.min(rootWidth, heightDiff)
+		const wheelSize = Math.max(0, Math.min(rootWidth, heightDiff))
 
 		this.element.style.setProperty("--wheel-size", `${wheelSize}px`)
 	}
