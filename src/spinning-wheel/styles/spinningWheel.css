@@ -13,6 +13,7 @@
 
 	--inset-shadow-color: rgb(240 120 2);
 	--main-color: #fcd81e;
+	--drop-shadow-color: rgb(0 0 0 / 20%);
 
 	display: grid;
 	grid-template-rows: 0.5em var(--wheel-size) auto;
@@ -28,7 +29,7 @@
 .spinning-wheel__wheel {
 	position: relative;
 	grid-row: 2 / 3;
-	grid-column: 1 / 1;
+	grid-column: 1 / 2;
 
 	width: var(--wheel-size);
 	height: var(--wheel-size);
@@ -107,14 +108,14 @@
 	grid-column: 1 / 2;
 	width: var(--wheel-size);
 	height: var(--wheel-size);
-	box-shadow: 0 0.2em 0.4em 0.2em rgb(0, 0, 0, 0.2);
+	box-shadow: 0 0.2em 0.4em 0.2em var(--drop-shadow-color);
 	border-radius: 50%;
 	background: radial-gradient(
 		closest-side circle at center,
 		transparent,
 		transparent calc(100% - var(--border) - var(--shadow)),
 		transparent calc(100% - var(--border) - var(--shadow)),
-		rgb(0, 0, 0, 0.2) calc(100% - var(--border) - 1px),
+		var(--drop-shadow-color) calc(100% - var(--border) - 1px),
 		var(--inset-shadow-color) calc(100% - var(--border)),
 		var(--main-color) calc(100% - var(--border) + var(--inset-shadow)),
 		var(--main-color) calc(100% - var(--inset-shadow)),
@@ -130,7 +131,7 @@
 	width: clamp(1em, 5%, 5em);
 	box-shadow:
 		inset 0 0 0.3em 0.1em var(--inset-shadow-color),
-		0 0.2em 0.4em 0.1em rgb(0, 0, 0, 0.2);
+		0 0.2em 0.4em 0.1em var(--drop-shadow-color);
 	border-radius: 50%;
 	background-color: var(--main-color);
 	transform: translate(-50%, -50%);
@@ -151,7 +152,7 @@
 	background-position: center top;
 	background-size: contain;
 	background-repeat: no-repeat;
-	filter: drop-shadow(0 0.4em 0.4em rgb(0, 0, 0, 0.2));
+	filter: drop-shadow(0 0.4em 0.4em var(--drop-shadow-color));
 }
 
 .spinning-wheel__button {
@@ -161,7 +162,7 @@
 	padding: 0.5em 1em;
 	box-shadow:
 		inset 0 0 0.5em 0.3em var(--inset-shadow-color),
-		0 0.2em 0.4em 0.1em rgb(0, 0, 0, 0.2);
+		0 0.2em 0.4em 0.1em var(--drop-shadow-color);
 	border: none;
 	border-radius: 0.5em;
 
