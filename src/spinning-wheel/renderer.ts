@@ -152,26 +152,21 @@ export class Renderer {
 			return
 		}
 
-		this.element.style.setProperty("transform", "")
+		this.element.style.setProperty("--wheel-size", "")
+		this.element.style.setProperty("--root-size", "")
 
 		const rootWidth = this.root.clientWidth
 		const rootHeight = this.root.clientHeight
-		const wheelWidth = this.element.clientWidth
-		const wheelHeight = this.element.clientHeight
-
-		const scale = Math.min(rootWidth / wheelWidth, rootHeight / wheelHeight)
-		if (scale >= 1) {
-			return
-		}
-
-		const heightDiff = rootHeight - wheelHeight
-		const widthDiff = rootWidth - wheelWidth
-		const translateY = Math.min(0, heightDiff / 2)
-		const translateX = Math.min(0, widthDiff / 2)
 
 		this.element.style.setProperty(
-			"transform",
-			`translateY(${translateY}px) translateX(${translateX}px) scale(${scale})`
+			"--root-size",
+			`${Math.min(rootWidth, rootHeight)}px`
 		)
+
+		const wheelHeight = this.element.clientHeight
+		const heightDiff = rootHeight - wheelHeight
+		const wheelSize = Math.min(rootWidth, heightDiff)
+
+		this.element.style.setProperty("--wheel-size", `${wheelSize}px`)
 	}
 }
