@@ -14,12 +14,11 @@
 	--main-color: #fcd81e;
 
 	display: grid;
-	grid-template-rows: 1% 1fr auto;
+	grid-template-rows: 0.5rem 1fr auto;
 	grid-template-columns: 1fr;
 	align-items: center;
 	justify-items: center;
-	padding: 10px;
-
+	padding: 2%;
 	width: 100%;
 	overflow: hidden;
 }
