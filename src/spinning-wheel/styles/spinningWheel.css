@@ -1,7 +1,6 @@
 .spinning-wheel {
 	--root-size: 0px; /* fallback */
 	--wheel-size: 0px; /* fallback */
-	--segments-count: 2; /* fallback */
 	--wheel-gradient: conic-gradient(
 		red,
 		orange,

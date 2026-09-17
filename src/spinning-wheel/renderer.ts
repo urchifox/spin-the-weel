@@ -105,7 +105,6 @@ export class Renderer {
 		const gradient = this.getGradient(segmentsCount)
 
 		return {
-			"--prizes-count": segmentsCount.toString(),
 			"--icon-size": `${iconSize}%`,
 			"--sector-angle": `${sectorAngle}deg`,
 			"--x-offset": `${xOffset}%`,
