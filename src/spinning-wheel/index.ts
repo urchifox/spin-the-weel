@@ -30,8 +30,6 @@ export class SpinningWheel {
 		}
 
 		this.root.appendChild(element)
-		this.root.style.setProperty("overflow", "hidden")
-
 		this.renderer.renderPrizes()
 		this.renderer.fitWheelIntoRoot()
 		this.setListeners()
@@ -39,7 +37,6 @@ export class SpinningWheel {
 
 	unmount() {
 		this.renderer.clear()
-		this.root.style.removeProperty("overflow")
 		if (this.resizeTimerId !== null) {
 			clearTimeout(this.resizeTimerId)
 			this.resizeTimerId = null
