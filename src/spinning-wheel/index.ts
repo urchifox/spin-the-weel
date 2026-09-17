@@ -26,15 +26,20 @@ export class SpinningWheel extends Component {
 	private prizes: SpinningWheelProps["prizes"]
 	private wheelColors: SpinningWheelProps["wheelColors"]
 
+	private resizeTimerId: number | null = null
+
 	constructor(props: SpinningWheelProps) {
 		const { root, prizes, wheelColors } = props
 		super({
 			root,
 			markup,
 		})
+		this.root.style.setProperty("overflow", "hidden")
 		this.prizes = prizes
 		this.wheelColors = wheelColors
 		this.renderPrizes()
+		this.fitWheelIntoRoot()
+		this.setListeners()
 	}
 
 	private renderPrizes() {
@@ -106,5 +111,49 @@ export class SpinningWheel extends Component {
 		const angle = 360 / segmentsCount / 2
 
 		return `conic-gradient(from ${angle}deg, ${stops.join(", ")})`
+	}
+
+	private setListeners() {
+		window.addEventListener("resize", () => {
+			this.onWindowResize()
+		})
+	}
+
+	private onWindowResize() {
+		if (this.resizeTimerId !== null) {
+			clearTimeout(this.resizeTimerId)
+		}
+
+		this.resizeTimerId = setTimeout(() => {
+			this.fitWheelIntoRoot()
+		}, 100)
+	}
+
+	private fitWheelIntoRoot() {
+		if (this.element === undefined) {
+			return
+		}
+
+		this.element.style.setProperty("transform", "")
+
+		const rootWidth = this.root.clientWidth
+		const rootHeight = this.root.clientHeight
+		const wheelWidth = this.element.clientWidth
+		const wheelHeight = this.element.clientHeight
+
+		const scale = Math.min(rootWidth / wheelWidth, rootHeight / wheelHeight)
+		if (scale >= 1) {
+			return
+		}
+
+		const heightDiff = rootHeight - wheelHeight
+		const widthDiff = rootWidth - wheelWidth
+		const translateY = Math.min(0, heightDiff / 2)
+		const translateX = Math.min(0, widthDiff / 2)
+
+		this.element.style.setProperty(
+			"transform",
+			`translateY(${translateY}px) translateX(${translateX}px) scale(${scale})`
+		)
 	}
 }
