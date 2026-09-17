@@ -148,9 +148,16 @@ export class Renderer {
 			`${Math.max(0, Math.min(rootWidth, rootHeight))}px`
 		)
 
+		const styles = getComputedStyle(this.element)
+		const contentWidth =
+			this.element.clientWidth -
+			parseFloat(styles.paddingLeft) -
+			parseFloat(styles.paddingRight)
+
 		const wheelHeight = this.element.clientHeight
 		const heightDiff = rootHeight - wheelHeight
-		const wheelSize = Math.max(0, Math.min(rootWidth, heightDiff))
+		const wheelWidth = Math.max(0, contentWidth)
+		const wheelSize = Math.max(0, Math.min(wheelWidth, heightDiff))
 
 		this.element.style.setProperty("--wheel-size", `${wheelSize}px`)
 	}
