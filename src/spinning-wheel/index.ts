@@ -28,6 +28,7 @@ export class SpinningWheel {
 
 	private renderer: Renderer
 	private resizeTimerId: number | null = null
+	private abortControlled = new AbortController()
 
 	constructor(props: SpinningWheelProps) {
 		const { root, prizes, wheelColors } = props
@@ -39,6 +40,9 @@ export class SpinningWheel {
 			prizes: this.prizes,
 			wheelColors: wheelColors ?? {},
 		})
+	}
+
+	mount() {
 		const element = this.renderer.createElement(markup)
 		if (element === null) {
 			return
@@ -52,10 +56,24 @@ export class SpinningWheel {
 		this.setListeners()
 	}
 
+	unmount() {
+		this.renderer.clear()
+		this.root.style.removeProperty("overflow")
+		if (this.resizeTimerId !== null) {
+			clearTimeout(this.resizeTimerId)
+			this.resizeTimerId = null
+		}
+		this.abortControlled.abort()
+	}
+
 	private setListeners() {
-		window.addEventListener("resize", () => {
-			this.onWindowResize()
-		})
+		window.addEventListener(
+			"resize",
+			() => {
+				this.onWindowResize()
+			},
+			{ signal: this.abortControlled.signal }
+		)
 	}
 
 	private onWindowResize() {

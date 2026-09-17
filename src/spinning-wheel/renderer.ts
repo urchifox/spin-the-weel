@@ -12,13 +12,18 @@ export class Renderer {
 	private prizes: RendererProps["prizes"]
 	private wheelColors: RendererProps["wheelColors"]
 
-	private element: HTMLElement | null = null
+	private element?: HTMLElement
 
 	constructor(props: RendererProps) {
 		const { root, prizes, wheelColors } = props
 		this.root = root
 		this.prizes = prizes
 		this.wheelColors = wheelColors
+	}
+
+	clear() {
+		this.element?.remove()
+		this.element = undefined
 	}
 
 	createElement(markup: string) {
@@ -32,7 +37,7 @@ export class Renderer {
 	}
 
 	renderPrizes() {
-		if (this.element === null) {
+		if (this.element === undefined) {
 			return
 		}
 		const prizesListElement = this.element.querySelector(
@@ -135,7 +140,7 @@ export class Renderer {
 	}
 
 	fitWheelIntoRoot() {
-		if (this.element === null) {
+		if (this.element === undefined) {
 			return
 		}
 
