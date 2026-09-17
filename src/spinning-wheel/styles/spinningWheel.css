@@ -31,6 +31,7 @@
 
 	width: 100%;
 	border-radius: 50%;
+	border: 1px solid var(--inset-shadow-color);
 	background: var(--wheel-gradient);
 	transition: transform 0.3s ease;
 
@@ -111,7 +112,7 @@
 		transparent,
 		transparent calc(100% - var(--border) - var(--shadow)),
 		transparent calc(100% - var(--border) - var(--shadow)),
-		rgb(0, 0, 0, 0.2) calc(100% - var(--border)),
+		rgb(0, 0, 0, 0.2) calc(100% - var(--border) - 1px),
 		var(--inset-shadow-color) calc(100% - var(--border)),
 		var(--main-color) calc(100% - var(--border) + var(--inset-shadow)),
 		var(--main-color) calc(100% - var(--inset-shadow)),
