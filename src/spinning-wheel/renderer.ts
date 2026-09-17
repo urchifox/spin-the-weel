@@ -1,28 +1,40 @@
 import { Prize, WheelColors } from "."
 import { createElement, isHtmlElement } from "../helpers/dom"
 
-export type RenderManagerProps = {
+export type RendererProps = {
 	root: HTMLElement
-	element: HTMLElement
 	prizes: Array<Prize>
 	wheelColors: WheelColors
 }
 
-export class RenderManager {
-	private root: RenderManagerProps["root"]
-	private element: RenderManagerProps["element"]
-	private prizes: RenderManagerProps["prizes"]
-	private wheelColors: RenderManagerProps["wheelColors"]
+export class Renderer {
+	private root: RendererProps["root"]
+	private prizes: RendererProps["prizes"]
+	private wheelColors: RendererProps["wheelColors"]
 
-	constructor(props: RenderManagerProps) {
-		const { root, element, prizes, wheelColors } = props
+	private element: HTMLElement | null = null
+
+	constructor(props: RendererProps) {
+		const { root, prizes, wheelColors } = props
 		this.root = root
-		this.element = element
 		this.prizes = prizes
 		this.wheelColors = wheelColors
 	}
 
+	createElement(markup: string) {
+		const element = createElement(markup)
+		if (!isHtmlElement(element)) {
+			return null
+		}
+
+		this.element = element
+		return element
+	}
+
 	renderPrizes() {
+		if (this.element === null) {
+			return
+		}
 		const prizesListElement = this.element.querySelector(
 			".spinning-wheel__prizes"
 		)
@@ -123,7 +135,7 @@ export class RenderManager {
 	}
 
 	fitWheelIntoRoot() {
-		if (this.element === undefined) {
+		if (this.element === null) {
 			return
 		}
 

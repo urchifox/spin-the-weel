@@ -1,12 +1,12 @@
 import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
-import { Component, ComponentProps } from "../component"
-import { RenderManager } from "./renderManager"
+import { Renderer } from "./renderer"
 
 export type SpinningWheelProps = {
+	root: HTMLElement
 	prizes: Array<Prize>
 	wheelColors?: WheelColors
-} & Omit<ComponentProps, "markup">
+}
 
 export type Prize = {
 	id: string
@@ -22,30 +22,33 @@ export type WheelColors = {
 	lightness?: number
 }
 
-export class SpinningWheel extends Component {
+export class SpinningWheel {
+	protected root: SpinningWheelProps["root"]
 	private prizes: SpinningWheelProps["prizes"]
 
-	private renderManager: RenderManager
+	private renderer: Renderer
 	private resizeTimerId: number | null = null
 
 	constructor(props: SpinningWheelProps) {
 		const { root, prizes, wheelColors } = props
-		super({
-			root,
-			markup,
-		})
-		this.root.style.setProperty("overflow", "hidden")
+		this.root = root
 		this.prizes = prizes
 
-		this.renderManager = new RenderManager({
+		this.renderer = new Renderer({
 			root: this.root,
-			element: this.element ?? this.root,
 			prizes: this.prizes,
 			wheelColors: wheelColors ?? {},
 		})
+		const element = this.renderer.createElement(markup)
+		if (element === null) {
+			return
+		}
 
-		this.renderManager.renderPrizes()
-		this.renderManager.fitWheelIntoRoot()
+		this.root.appendChild(element)
+		this.root.style.setProperty("overflow", "hidden")
+
+		this.renderer.renderPrizes()
+		this.renderer.fitWheelIntoRoot()
 		this.setListeners()
 	}
 
@@ -61,7 +64,7 @@ export class SpinningWheel extends Component {
 		}
 
 		this.resizeTimerId = setTimeout(() => {
-			this.renderManager.fitWheelIntoRoot()
+			this.renderer.fitWheelIntoRoot()
 		}, 100)
 	}
 }
