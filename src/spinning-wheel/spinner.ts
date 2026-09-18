@@ -1,13 +1,18 @@
-import { getRandomInteger } from "./helpers"
+import { getRandomInteger, isHtmlElement } from "./helpers"
 import { SpinningWheelMountProps } from "./types"
 
 export class Spinner {
+	private element?: HTMLElement
 	private prizes: SpinningWheelMountProps["prizes"] = []
 	private readonly minTime = 1500
 	private readonly maxTime = 3000
 
-	setProps(props: Pick<SpinningWheelMountProps, "prizes">) {
+	setProps(props: {
+		prizes: SpinningWheelMountProps["prizes"]
+		element: HTMLElement
+	}) {
 		this.prizes = props.prizes
+		this.element = props.element
 	}
 
 	clear() {}
@@ -20,10 +25,16 @@ export class Spinner {
 			requestAnimationFrame(() => {
 				const wheelAngle = this.getCurrentWheelAngle(wheel)
 				wheel.style.setProperty("--wheel-end-angle", `${wheelAngle}deg`)
+
 				wheel.classList.add("spinning-wheel__wheel--stopped")
 				requestAnimationFrame(() => {
 					wheel.style.setProperty("--wheel-end-angle", `${wheelAngle + 360}deg`)
-					wheel.ontransitionend = () => {
+					wheel.ontransitionend = (event: TransitionEvent) => {
+						// Ignore bubbled child transitions and later opacity fade
+						if (event.target !== wheel || event.propertyName !== "transform") {
+							return
+						}
+						wheel.ontransitionend = null
 						this.onStop(wheel)
 					}
 				})
@@ -38,7 +49,63 @@ export class Spinner {
 			console.error("Prize not found")
 			return
 		}
-		console.log(prize.name)
+		const prizeElement = wheel.querySelector(
+			`.spinning-wheel__prize:nth-child(${index + 1})`
+		)
+		const resultElement = this.element?.querySelector(`.spinning-wheel__result`)
+		if (isHtmlElement(prizeElement) && isHtmlElement(resultElement)) {
+			this.animateResult(wheel, prizeElement, resultElement, prize.image, index)
+		}
+
+		prize.callback()
+	}
+
+	private animateResult(
+		wheel: HTMLElement,
+		prizeElement: HTMLElement,
+		resultElement: HTMLElement,
+		image: string,
+		index: number
+	) {
+		const prizeRect = prizeElement.getBoundingClientRect()
+		const wheelRect = wheel.getBoundingClientRect()
+
+		const resultSize = resultElement.offsetWidth
+		if (resultSize === 0) {
+			return
+		}
+
+		// Layout size (not AABB) so rotation does not inflate the scale
+		const scale = prizeElement.offsetWidth / resultSize
+
+		const wheelAngle = this.getCurrentWheelAngle(wheel)
+		const sectorAngle = (360 / this.prizes.length) * index
+		// Shortest path to 0deg so the reveal does not spin the long way
+		const angle = ((((wheelAngle + sectorAngle) % 360) + 540) % 360) - 180
+
+		const dx =
+			prizeRect.left +
+			prizeRect.width / 2 -
+			(wheelRect.left + wheelRect.width / 2)
+		const dy =
+			prizeRect.top +
+			prizeRect.height / 2 -
+			(wheelRect.top + wheelRect.height / 2)
+
+		resultElement.style.setProperty("--bg-image", `url("${CSS.escape(image)}")`)
+		resultElement.style.transition = "none"
+		resultElement.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) rotate(${angle}deg) scale(${scale})`
+		resultElement.classList.add("spinning-wheel__result--visible")
+
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				resultElement.style.transition = ""
+				resultElement.classList.add("spinning-wheel__result--revealed")
+				resultElement.style.transform =
+					"translate(-50%, -50%) rotate(0deg) scale(1)"
+				this.element?.classList.add("spinning-wheel--spinned")
+			})
+		})
 	}
 
 	private getCurrentWheelAngle(wheel: HTMLElement) {

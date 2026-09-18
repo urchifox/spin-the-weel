@@ -29,7 +29,7 @@ export class SpinningWheel {
 
 		const root = props.root
 		root.appendChild(element)
-		this.spinner.setProps({ prizes: props.prizes })
+		this.spinner.setProps({ prizes: props.prizes, element: element })
 		this.abortController = new AbortController()
 		this.resizeObserver = new ResizeObserver(() =>
 			requestAnimationFrame(() => {
