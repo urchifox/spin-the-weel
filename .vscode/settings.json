@@ -1,3 +1,7 @@
 {
-	"stylelint.validate": []
+	"files.eol": "\n",
+	"stylelint.validate": [],
+	"eslint.rules.customizations": [
+		{ "rule": "prettier/prettier", "severity": "off" }
+	]
 }
