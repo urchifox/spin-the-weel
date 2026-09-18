@@ -41,7 +41,7 @@ export class Spinner {
 	}
 
 	spin(): SpinResult | null {
-		const finalAngle = getRandomInteger({ min: 0, max: 360 })
+		const finalAngle = getRandomInteger({ min: 0, max: 359 })
 		const index = this.getWheelSegmentIndex(finalAngle)
 		const prize = this.prizes[index]
 		if (prize === undefined) {

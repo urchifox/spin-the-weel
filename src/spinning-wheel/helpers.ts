@@ -10,7 +10,7 @@ export function createElement(markup: string) {
 }
 
 export function getRandomInteger({ min, max }: { min: number; max: number }) {
-	return Math.floor(Math.random() * (max - min)) + min
+	return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
 export function wait(ms: number) {
