@@ -8,32 +8,44 @@ export const mockPrizes = [
 		id: "bonusCash",
 		name: "Bonus Cash",
 		image: bonusCash,
-		callback: () => {
+		onWin: (animationPromise: Promise<void>) => {
 			console.log("Bonus Cash")
+			animationPromise?.then(() => {
+				console.log("Bonus Cash animation finished")
+			})
 		},
 	},
 	{
 		id: "freeSpins",
 		name: "Free Spins",
 		image: freeSpins,
-		callback: () => {
+		onWin: (animationPromise: Promise<void>) => {
 			console.log("Free Spins")
+			animationPromise?.then(() => {
+				console.log("Free Spins animation finished")
+			})
 		},
 	},
 	{
 		id: "depositMatchBonus",
 		name: "Deposit Match Bonus",
 		image: depositMatchBonus,
-		callback: () => {
+		onWin: (animationPromise: Promise<void>) => {
 			console.log("Deposit Match Bonus")
+			animationPromise?.then(() => {
+				console.log("Deposit Match Bonus animation finished")
+			})
 		},
 	},
 	{
 		id: "mysteryReward",
 		name: "Mystery Reward",
 		image: mysteryReward,
-		callback: () => {
+		onWin: (animationPromise: Promise<void>) => {
 			console.log("Mystery Reward")
+			animationPromise?.then(() => {
+				console.log("Mystery Reward animation finished")
+			})
 		},
 	},
 ]

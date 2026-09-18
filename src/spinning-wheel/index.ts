@@ -91,6 +91,7 @@ export class SpinningWheel {
 		}
 
 		button.disabled = true
-		spinResult.prize.callback()
+		const { prize, animationPromise } = spinResult
+		prize.onWin(animationPromise)
 	}
 }
