@@ -1,15 +1,29 @@
 # Spin the Weel
 
-Vite + TypeScript project.
+"Spin the Wheel" is a responsive promotional component that can be embedded into a gaming or casino website. It is independent of its surroundings and can be placed anywhere — this page is just a demo.
 
-## Scripts
+Built with TypeScript, HTML, and CSS.
 
-| Script            | What it does                                        |
-| ----------------- | --------------------------------------------------- |
-| `npm run serve`   | Dev server on http://localhost:5173                 |
-| `npm run build`   | Production build into `dist`                        |
-| `npm run preview` | Serves the built `dist` on http://localhost:4173    |
-| `npm run format`  | Rewrites files with Prettier                        |
-| `npm run check`   | Prettier check, then ESLint + Stylelint, then `tsc` |
+## Structure
 
-`check` also runs as the Husky `pre-commit` hook, so a commit is aborted if any step fails.
+```text
+.
+├── index.html              # App shell; mounts #app
+└── src/
+    ├── app.ts              # Entry point; mounts SpinningWheel with mock prizes
+    ├── mock-prizes/        # Mock prize data and images for the demo
+    ├── spinning-wheel/     # Self-contained wheel component
+    └── styles/             # Global styles for the demo page
+```
+
+## How to run
+
+```bash
+npm install
+```
+
+| Script            | What it does                                     |
+| ----------------- | ------------------------------------------------ |
+| `npm run serve`   | Dev server on http://localhost:5173              |
+| `npm run build`   | Production build into `dist`                     |
+| `npm run preview` | Serves the built `dist` on http://localhost:4173 |
