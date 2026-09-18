@@ -1,10 +1,20 @@
-import { getRandomInteger, isHtmlElement } from "./helpers"
-import { SpinningWheelMountProps } from "./types"
+import { getRandomInteger, isHtmlElement, wait } from "./helpers"
+import { Prize, SpinningWheelMountProps } from "./types"
+
+type SpinResult = {
+	prize: Prize
+	animationPromise: Promise<void>
+}
 
 export class Spinner {
 	private element?: HTMLElement
 	private prizes: SpinningWheelMountProps["prizes"] = []
 	private spinAnimation?: Animation
+	private spinResult: {
+		finalAngle: number
+		index: number
+		prize: Prize
+	} | null = null
 
 	private readonly windupDeg = -33
 	private readonly windupMs = 500
@@ -23,20 +33,70 @@ export class Spinner {
 	}
 
 	clear() {
+		this.element = undefined
+		this.prizes = []
 		this.spinAnimation?.cancel()
 		this.spinAnimation = undefined
+		this.spinResult = null
 	}
 
-	spin(wheel: HTMLElement) {
-		void this.playSpin(wheel)
+	spin(): SpinResult | null {
+		const finalAngle = getRandomInteger({ min: 0, max: 360 })
+		const index = this.getWheelSegmentIndex(finalAngle)
+		const prize = this.prizes[index]
+		if (prize === undefined) {
+			return null
+		}
+
+		this.spinResult = {
+			finalAngle,
+			index,
+			prize,
+		}
+
+		return {
+			prize,
+			animationPromise: this.playSpin(),
+		}
 	}
 
-	private async playSpin(wheel: HTMLElement) {
+	private async playSpin() {
+		const wheel = this.element?.querySelector(".spinning-wheel__wheel")
+		if (!isHtmlElement(wheel)) {
+			return
+		}
+
 		this.spinAnimation?.cancel()
+		const animation = this.getSpinningAnimation(wheel)
+		this.spinAnimation = animation
 
+		let wasCanceled = false
+		try {
+			await animation?.finished
+		} catch {
+			wasCanceled = true
+		}
+
+		if (this.spinAnimation === animation) {
+			this.spinAnimation = undefined
+		}
+
+		if (wasCanceled) {
+			return
+		}
+
+		await wait(this.pauseAfterSpinMs)
+		await this.animateResult(wheel)
+	}
+
+	private getSpinningAnimation(wheel: HTMLElement) {
+		if (this.spinResult === null) {
+			return
+		}
+
+		const { finalAngle } = this.spinResult
 		const turns = getRandomInteger({ min: this.minTurns, max: this.maxTurns })
-		const extraDeg = getRandomInteger({ min: 0, max: 360 })
-		const endDeg = turns * 360 + extraDeg
+		const endDeg = turns * 360 + finalAngle
 		const spinMs = getRandomInteger({
 			min: this.minSpinMs,
 			max: this.maxSpinMs,
@@ -56,50 +116,23 @@ export class Spinner {
 			],
 			{ duration: totalMs, fill: "forwards" }
 		)
-		this.spinAnimation = animation
-
-		try {
-			await animation.finished
-		} catch {
-			if (this.spinAnimation === animation) {
-				this.spinAnimation = undefined
-			}
-			return
-		}
-
-		if (this.spinAnimation === animation) {
-			this.spinAnimation = undefined
-		}
-		setTimeout(() => {
-			this.onStop(wheel)
-		}, this.pauseAfterSpinMs)
+		return animation
 	}
 
-	private onStop(wheel: HTMLElement) {
-		const index = this.getWheelSegmentIndex(wheel)
-		const prize = this.prizes[index]
-		if (prize === undefined) {
-			console.error("Prize not found")
+	private animateResult(wheel: HTMLElement) {
+		if (this.spinResult === null) {
 			return
 		}
-		const prizeElement = wheel.querySelector(
+
+		const { finalAngle, index, prize } = this.spinResult
+		const prizeElement = this.element?.querySelector(
 			`.spinning-wheel__prize:nth-child(${index + 1})`
 		)
 		const resultElement = this.element?.querySelector(`.spinning-wheel__result`)
-		if (isHtmlElement(prizeElement) && isHtmlElement(resultElement)) {
-			this.animateResult(wheel, prizeElement, resultElement, prize.image, index)
+		if (!isHtmlElement(prizeElement) || !isHtmlElement(resultElement)) {
+			return
 		}
 
-		prize.callback()
-	}
-
-	private animateResult(
-		wheel: HTMLElement,
-		prizeElement: HTMLElement,
-		resultElement: HTMLElement,
-		image: string,
-		index: number
-	) {
 		const prizeRect = prizeElement.getBoundingClientRect()
 		const wheelRect = wheel.getBoundingClientRect()
 
@@ -111,10 +144,9 @@ export class Spinner {
 		// Layout size (not AABB) so rotation does not inflate the scale
 		const scale = prizeElement.offsetWidth / resultSize
 
-		const wheelAngle = this.getCurrentWheelAngle(wheel)
 		const sectorAngle = (360 / this.prizes.length) * index
 		// Shortest path to 0deg so the reveal does not spin the long way
-		const angle = ((((wheelAngle + sectorAngle) % 360) + 540) % 360) - 180
+		const angle = ((((finalAngle + sectorAngle) % 360) + 540) % 360) - 180
 
 		const dx =
 			prizeRect.left +
@@ -125,34 +157,31 @@ export class Spinner {
 			prizeRect.height / 2 -
 			(wheelRect.top + wheelRect.height / 2)
 
-		resultElement.style.setProperty("--bg-image", `url("${CSS.escape(image)}")`)
+		resultElement.style.setProperty(
+			"--bg-image",
+			`url("${CSS.escape(prize.image)}")`
+		)
 		resultElement.style.transition = "none"
 		resultElement.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) rotate(${angle}deg) scale(${scale})`
 		resultElement.classList.add("spinning-wheel__result--visible")
 
-		requestAnimationFrame(() => {
+		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
-				resultElement.style.transition = ""
-				resultElement.classList.add("spinning-wheel__result--revealed")
-				resultElement.style.transform =
-					"translate(-50%, -50%) rotate(0deg) scale(1)"
-				this.element?.classList.add("spinning-wheel--spinned")
+				requestAnimationFrame(() => {
+					resultElement.style.transition = ""
+					resultElement.classList.add("spinning-wheel__result--revealed")
+					resultElement.style.transform =
+						"translate(-50%, -50%) rotate(0deg) scale(1)"
+					this.element?.classList.add("spinning-wheel--spinned")
+					resultElement.addEventListener("transitionend", () => resolve(), {
+						once: true,
+					})
+				})
 			})
 		})
 	}
 
-	private getCurrentWheelAngle(wheel: HTMLElement) {
-		const style = window.getComputedStyle(wheel)
-		const matrix = new DOMMatrixReadOnly(style.transform)
-		const angle = Math.atan2(matrix.b, matrix.a) * (180 / Math.PI)
-
-		const normalizedAngle = (angle + 360) % 360
-		return normalizedAngle
-	}
-
-	private getWheelSegmentIndex(wheel: HTMLElement) {
-		const wheelAngle = this.getCurrentWheelAngle(wheel)
-
+	private getWheelSegmentIndex(wheelAngle: number) {
 		const segmentsCount = this.prizes.length
 		const segmentAngle = 360 / segmentsCount
 		const shifted = (wheelAngle + segmentAngle / 2) % 360

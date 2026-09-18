@@ -78,15 +78,19 @@ export class SpinningWheel {
 	}
 
 	private onButtonClick() {
-		const wheel = this.renderer.getElement(".spinning-wheel__wheel")
 		const button = this.renderer.getElement<HTMLButtonElement>(
 			".spinning-wheel__button"
 		)
-
-		if (!isHtmlElement(wheel) || !isHtmlElement(button)) {
+		if (!isHtmlElement(button)) {
 			return
 		}
+
+		const spinResult = this.spinner.spin()
+		if (spinResult === null) {
+			return
+		}
+
 		button.disabled = true
-		this.spinner.spin(wheel)
+		spinResult.prize.callback()
 	}
 }

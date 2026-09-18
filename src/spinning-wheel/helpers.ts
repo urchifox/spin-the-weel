@@ -12,3 +12,9 @@ export function createElement(markup: string) {
 export function getRandomInteger({ min, max }: { min: number; max: number }) {
 	return Math.floor(Math.random() * (max - min)) + min
 }
+
+export function wait(ms: number) {
+	return new Promise<void>((resolve) => {
+		setTimeout(resolve, ms)
+	})
+}
