@@ -3,7 +3,7 @@ import freeSpins from "./images/freeSpins.png"
 import depositMatchBonus from "./images/depositMatchBonus.png"
 import mysteryReward from "./images/mysteryReward.png"
 
-export const prizes = [
+export const mockPrizes = [
 	{
 		id: "bonusCash",
 		name: "Bonus Cash",
