@@ -8,3 +8,7 @@ export function createElement(markup: string) {
 	const element = template.content.firstElementChild
 	return element
 }
+
+export function getRandomInteger({ min, max }: { min: number; max: number }) {
+	return Math.floor(Math.random() * (max - min)) + min
+}

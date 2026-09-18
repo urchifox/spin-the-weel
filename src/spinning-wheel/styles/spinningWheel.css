@@ -202,6 +202,7 @@
 	transition:
 		transform 0.3s ease,
 		background-color 0.3s ease;
+	transition: opacity 0.3s ease;
 	cursor: pointer;
 	user-select: none;
 }
@@ -218,4 +219,12 @@
 .spinning-wheel__button:focus-visible {
 	outline: 6px solid var(--inset-shadow-color);
 	outline-offset: 4px;
+}
+
+.spinning-wheel__button:disabled {
+	background-color: var(--inset-shadow-color);
+	transform: scale(0.95);
+	opacity: 0;
+	cursor: default;
+	pointer-events: none;
 }

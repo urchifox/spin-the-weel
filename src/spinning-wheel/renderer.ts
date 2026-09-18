@@ -185,4 +185,14 @@ export class Renderer {
 		const wheelSize = Math.min(wheelAvailableWidth, wheelAvailableHeight)
 		this.element.style.setProperty("--wheel-size", `${wheelSize}px`)
 	}
+
+	getElement<T extends HTMLElement>(selector?: string): T | null {
+		if (this.element === undefined) {
+			return null
+		}
+		if (selector === undefined) {
+			return (this.element as T) ?? null
+		}
+		return (this.element.querySelector(selector) as T) ?? null
+	}
 }
