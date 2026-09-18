@@ -1,1 +1,0 @@
-{"version":3,"file":"index-BN5wgAfT.js","sources":["../../src/app.ts"],"sourcesContent":["import \"./styles/index.css\"\n\nconst root = document.querySelector(\"#app\")\n\nif (root !== null) {\n\troot.textContent = \"Spin the weel\"\n}\n"],"names":["root"],"mappings":"ssBAEA,MAAMA,EAAO,SAAS,cAAc,MAAM,EAEtCA,IAAS,OACZA,EAAK,YAAc"}
