@@ -15,6 +15,7 @@
 	--main-color: #fcd81e;
 	--drop-shadow-color: rgb(0 0 0 / 20%);
 
+	position: relative;
 	display: grid;
 	grid-template-rows: 0.5em var(--wheel-size) auto;
 	grid-template-columns: 100%;
