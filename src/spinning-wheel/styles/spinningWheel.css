@@ -40,9 +40,6 @@
 }
 
 .spinning-wheel__wheel {
-	--first-turn-time: 0.9s;
-	--full-rurn-time: 0.6s;
-	--last-turn-time: 1.5s;
 	position: relative;
 	grid-row: 2 / 3;
 	grid-column: 1 / 2;
@@ -52,37 +49,14 @@
 	border: 1px solid var(--inset-shadow-color);
 	border-radius: 50%;
 	background: var(--wheel-gradient);
-
-	animation: spin var(--full-rurn-time) linear var(--first-turn-time) infinite;
-	animation-play-state: paused;
-}
-
-.spinning-wheel__wheel--spinning {
-	transform: rotate(360deg);
-	transition: transform var(--first-turn-time) ease-in;
-	animation-play-state: running;
-}
-
-.spinning-wheel__wheel--stopped {
-	transform: rotate(var(--wheel-end-angle));
-	transition: transform var(--last-turn-time) cubic-bezier(0, 0, 0.4, 1);
-	animation: none;
+	backface-visibility: hidden;
+	will-change: transform;
 }
 
 .spinning-wheel--spinned .spinning-wheel__wheel {
 	transition: opacity 0.3s ease;
 	opacity: 0;
 	pointer-events: none;
-}
-
-@keyframes spin {
-	from {
-		transform: rotate(0deg);
-	}
-
-	to {
-		transform: rotate(360deg);
-	}
 }
 
 .spinning-wheel__prizes {

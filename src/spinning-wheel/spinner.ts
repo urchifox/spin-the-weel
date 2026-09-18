@@ -4,8 +4,15 @@ import { SpinningWheelMountProps } from "./types"
 export class Spinner {
 	private element?: HTMLElement
 	private prizes: SpinningWheelMountProps["prizes"] = []
-	private readonly minTime = 1500
-	private readonly maxTime = 3000
+	private spinAnimation?: Animation
+
+	private readonly windupDeg = -33
+	private readonly windupMs = 500
+	private readonly minTurns = 3
+	private readonly maxTurns = 5
+	private readonly minSpinMs = 5000
+	private readonly maxSpinMs = 7000
+	private readonly pauseAfterSpinMs = 1000
 
 	setProps(props: {
 		prizes: SpinningWheelMountProps["prizes"]
@@ -15,31 +22,57 @@ export class Spinner {
 		this.element = props.element
 	}
 
-	clear() {}
+	clear() {
+		this.spinAnimation?.cancel()
+		this.spinAnimation = undefined
+	}
 
 	spin(wheel: HTMLElement) {
-		wheel.classList.add("spinning-wheel__wheel--spinning")
-		const time = getRandomInteger({ min: this.minTime, max: this.maxTime })
-		setTimeout(() => {
-			wheel.classList.remove("spinning-wheel__wheel--spinning")
-			requestAnimationFrame(() => {
-				const wheelAngle = this.getCurrentWheelAngle(wheel)
-				wheel.style.setProperty("--wheel-end-angle", `${wheelAngle}deg`)
+		void this.playSpin(wheel)
+	}
 
-				wheel.classList.add("spinning-wheel__wheel--stopped")
-				requestAnimationFrame(() => {
-					wheel.style.setProperty("--wheel-end-angle", `${wheelAngle + 360}deg`)
-					wheel.ontransitionend = (event: TransitionEvent) => {
-						// Ignore bubbled child transitions and later opacity fade
-						if (event.target !== wheel || event.propertyName !== "transform") {
-							return
-						}
-						wheel.ontransitionend = null
-						this.onStop(wheel)
-					}
-				})
-			})
-		}, time)
+	private async playSpin(wheel: HTMLElement) {
+		this.spinAnimation?.cancel()
+
+		const turns = getRandomInteger({ min: this.minTurns, max: this.maxTurns })
+		const extraDeg = getRandomInteger({ min: 0, max: 360 })
+		const endDeg = turns * 360 + extraDeg
+		const spinMs = getRandomInteger({
+			min: this.minSpinMs,
+			max: this.maxSpinMs,
+		})
+		const totalMs = this.windupMs + spinMs
+		const windupOffset = this.windupMs / totalMs
+
+		const animation = wheel.animate(
+			[
+				{ transform: "rotate(0deg)", offset: 0, easing: "ease-in-out" },
+				{
+					transform: `rotate(${this.windupDeg}deg)`,
+					offset: windupOffset,
+					easing: "cubic-bezier(0.1, 0.7, 0.15, 1)",
+				},
+				{ transform: `rotate(${endDeg}deg)`, offset: 1 },
+			],
+			{ duration: totalMs, fill: "forwards" }
+		)
+		this.spinAnimation = animation
+
+		try {
+			await animation.finished
+		} catch {
+			if (this.spinAnimation === animation) {
+				this.spinAnimation = undefined
+			}
+			return
+		}
+
+		if (this.spinAnimation === animation) {
+			this.spinAnimation = undefined
+		}
+		setTimeout(() => {
+			this.onStop(wheel)
+		}, this.pauseAfterSpinMs)
 	}
 
 	private onStop(wheel: HTMLElement) {
