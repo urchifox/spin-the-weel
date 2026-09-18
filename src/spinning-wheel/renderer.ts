@@ -26,10 +26,13 @@ export class Renderer {
 		}
 
 		this.element = element
+		this.renderPrizes()
+		this.fitWheelIntoRoot()
+
 		return element
 	}
 
-	renderPrizes() {
+	private renderPrizes() {
 		if (this.element === undefined) {
 			return
 		}

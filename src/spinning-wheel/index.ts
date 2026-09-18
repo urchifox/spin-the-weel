@@ -13,41 +13,36 @@ export class SpinningWheel {
 	mount(props: SpinningWheelMountProps) {
 		if (this.isMounted) {
 			console.warn("SpinningWheel is already mounted")
-			return
+			return false
 		}
-		this.isMounted = true
 
+		this.renderer.setProps(props)
+		const element = this.renderer.createElement(markup)
+		if (element === null) {
+			this.renderer.clear()
+			console.error("Failed to mount SpinningWheel")
+			return false
+		}
+
+		const root = props.root
+		root.appendChild(element)
 		this.abortController = new AbortController()
 		this.resizeObserver = new ResizeObserver(() =>
 			requestAnimationFrame(() => {
 				this.onResize()
 			})
 		)
-		const { root, prizes, wheelColors } = props
-		this.renderer.setProps({
-			root,
-			prizes,
-			wheelColors,
-		})
-
-		const element = this.renderer.createElement(markup)
-		if (element === null) {
-			return
-		}
-
-		root.appendChild(element)
 		this.resizeObserver?.observe(root)
-		this.renderer.renderPrizes()
-		this.renderer.fitWheelIntoRoot()
 		this.setListeners()
+		this.isMounted = true
+		return true
 	}
 
 	unmount() {
 		if (!this.isMounted) {
 			console.warn("SpinningWheel is not mounted")
-			return
+			return false
 		}
-		this.isMounted = false
 
 		this.renderer.clear()
 		if (this.resizeTimerId !== null) {
@@ -58,6 +53,8 @@ export class SpinningWheel {
 		this.abortController = undefined
 		this.resizeObserver?.disconnect()
 		this.resizeObserver = undefined
+		this.isMounted = false
+		return true
 	}
 
 	private setListeners() {}
