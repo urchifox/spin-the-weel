@@ -136,32 +136,53 @@ export class Renderer {
 	}
 
 	fitWheelIntoRoot() {
-		if (this.element === undefined) {
+		if (this.element === undefined || this.root === undefined) {
 			return
 		}
 
 		this.element.style.setProperty("--wheel-size", "")
 		this.element.style.setProperty("--root-size", "")
 
-		const rootWidth = this.root?.clientWidth ?? 0
-		const rootHeight = this.root?.clientHeight ?? 0
+		const rootStyles = getComputedStyle(this.root)
+		const rootPaddingLeft = parseFloat(rootStyles.paddingLeft)
+		const rootPaddingRight = parseFloat(rootStyles.paddingRight)
+		const rootPaddingTop = parseFloat(rootStyles.paddingTop)
+		const rootPaddingBottom = parseFloat(rootStyles.paddingBottom)
+		const rootBorderLeftWidth = parseFloat(rootStyles.borderLeftWidth)
+		const rootBorderRightWidth = parseFloat(rootStyles.borderRightWidth)
+		const rootBorderTopWidth = parseFloat(rootStyles.borderTopWidth)
+		const rootBorderBottomWidth = parseFloat(rootStyles.borderBottomWidth)
 
-		this.element.style.setProperty(
-			"--root-size",
-			`${Math.max(0, Math.min(rootWidth, rootHeight))}px`
+		const rootInnerWidth =
+			this.root.clientWidth -
+			rootPaddingLeft -
+			rootPaddingRight -
+			rootBorderLeftWidth -
+			rootBorderRightWidth
+		const rootInnerHeight =
+			this.root.clientHeight -
+			rootPaddingTop -
+			rootPaddingBottom -
+			rootBorderTopWidth -
+			rootBorderBottomWidth
+
+		const rootSize = Math.max(0, Math.min(rootInnerWidth, rootInnerHeight))
+		this.element.style.setProperty("--root-size", `${rootSize}px`)
+
+		const elementStyles = getComputedStyle(this.element)
+		const elementPaddingLeft = parseFloat(elementStyles.paddingLeft)
+		const elementPaddingRight = parseFloat(elementStyles.paddingRight)
+		const wheelAvailableWidth = Math.max(
+			0,
+			this.element.clientWidth - elementPaddingLeft - elementPaddingRight
 		)
 
-		const styles = getComputedStyle(this.element)
-		const contentWidth =
-			this.element.clientWidth -
-			parseFloat(styles.paddingLeft) -
-			parseFloat(styles.paddingRight)
+		const wheelAvailableHeight = Math.max(
+			0,
+			rootInnerHeight - this.element.clientHeight
+		)
 
-		const wheelHeight = this.element.clientHeight
-		const heightDiff = rootHeight - wheelHeight
-		const wheelWidth = Math.max(0, contentWidth)
-		const wheelSize = Math.max(0, Math.min(wheelWidth, heightDiff))
-
+		const wheelSize = Math.min(wheelAvailableWidth, wheelAvailableHeight)
 		this.element.style.setProperty("--wheel-size", `${wheelSize}px`)
 	}
 }
