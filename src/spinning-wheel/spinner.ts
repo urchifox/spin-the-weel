@@ -41,6 +41,11 @@ export class Spinner {
 	}
 
 	spin(): SpinResult | null {
+		if (this.spinResult !== null) {
+			console.warn("SpinningWheel is already spinning")
+			return null
+		}
+
 		const finalAngle = getRandomInteger({ min: 0, max: 359 })
 		const index = this.getWheelSegmentIndex(finalAngle)
 		const prize = this.prizes[index]
@@ -87,6 +92,7 @@ export class Spinner {
 
 		await wait(this.pauseAfterSpinMs)
 		await this.animateResult(wheel)
+		this.spinResult = null
 	}
 
 	private getSpinningAnimation(wheel: HTMLElement) {
