@@ -4,6 +4,12 @@
 
 Built with TypeScript, HTML, and CSS.
 
+## Embedding
+
+Create a new instance of the [SpinningWheel](./src/spinning-wheel/index.ts) class. Then call the `mount` method on the instance, passing the props described by the [SpinningWheelMountProps](./src/spinning-wheel/types.ts) type.
+
+Note that the root element for the component should have a fixed size (the wheel will be fitted into it).
+
 ## Structure
 
 ```text
@@ -13,7 +19,7 @@ Built with TypeScript, HTML, and CSS.
     ├── app.ts              # Entry point; mounts SpinningWheel with mock prizes
     ├── mock-prizes/        # Mock prize data and images for the demo
     ├── spinning-wheel/     # Self-contained wheel component
-    └── styles/             # Global styles for the demo page
+    └── styles/             # Global styles for the demo page only
 ```
 
 ## How to run
