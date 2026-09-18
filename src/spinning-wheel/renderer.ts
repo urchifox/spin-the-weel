@@ -1,4 +1,4 @@
-import { createElement, isHtmlElement } from "../helpers/dom"
+import { createElement, isHtmlElement } from "./helpers"
 import { Prize, SpinningWheelMountProps } from "./types"
 
 export class Renderer {
