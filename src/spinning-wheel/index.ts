@@ -64,7 +64,9 @@ export class SpinningWheel {
 
 	private setListeners() {
 		const button = this.renderer.getElement(".spinning-wheel__button")
-		button?.addEventListener("click", () => this.onButtonClick())
+		button?.addEventListener("click", () => this.onButtonClick(), {
+			signal: this.abortController?.signal,
+		})
 	}
 
 	private onResize() {
