@@ -54,7 +54,10 @@
 	will-change: transform;
 }
 
-.spinning-wheel--spinned .spinning-wheel__wheel {
+.spinning-wheel--result-shown .spinning-wheel__wheel,
+.spinning-wheel--result-shown .spinning-wheel__frame,
+.spinning-wheel--result-shown .spinning-wheel__frame::after,
+.spinning-wheel--result-shown .spinning-wheel__pointer {
 	transition: opacity 0.3s ease;
 	opacity: 0;
 	pointer-events: none;
@@ -94,14 +97,6 @@
 	transform: translate(var(--translate-x), var(--translate-y))
 		rotate(var(--rotate));
 	transform-origin: var(--x-offset) var(--y-offset);
-}
-
-.spinning-wheel__prize--received {
-	transform: translate(-50%, -50%) rotate(var(--rotate)) scale(2);
-	transform-origin: center center;
-	transition:
-		transform 0.3s ease,
-		transform-origin 0.3s ease;
 }
 
 .spinning-wheel__prize-icon {
@@ -170,12 +165,6 @@
 	);
 }
 
-.spinning-wheel--spinned .spinning-wheel__frame {
-	transition: opacity 0.3s ease;
-	opacity: 0;
-	pointer-events: none;
-}
-
 .spinning-wheel__frame::after {
 	position: absolute;
 	top: 50%;
@@ -190,12 +179,6 @@
 	background-color: var(--main-color);
 	transform: translate(-50%, -50%);
 	content: "";
-}
-
-.spinning-wheel--spinned .spinning-wheel__frame::after {
-	transition: opacity 0.3s ease;
-	opacity: 0;
-	pointer-events: none;
 }
 
 .spinning-wheel__pointer {
@@ -214,12 +197,6 @@
 	background-size: contain;
 	background-repeat: no-repeat;
 	filter: drop-shadow(0 0.4em 0.4em var(--drop-shadow-color));
-}
-
-.spinning-wheel--spinned .spinning-wheel__pointer {
-	transition: opacity 0.3s ease;
-	opacity: 0;
-	pointer-events: none;
 }
 
 .spinning-wheel__button {
@@ -248,9 +225,9 @@
 	font-style: normal;
 
 	transition:
+		opacity 0.3s ease,
 		transform 0.3s ease,
 		background-color 0.3s ease;
-	transition: opacity 0.3s ease;
 	cursor: pointer;
 	user-select: none;
 }

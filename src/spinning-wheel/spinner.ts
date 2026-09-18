@@ -178,7 +178,7 @@ export class Spinner {
 					resultElement.classList.add("spinning-wheel__result--revealed")
 					resultElement.style.transform =
 						"translate(-50%, -50%) rotate(0deg) scale(1)"
-					this.element?.classList.add("spinning-wheel--spinned")
+					this.element?.classList.add("spinning-wheel--result-shown")
 					resultElement.addEventListener("transitionend", () => resolve(), {
 						once: true,
 					})
