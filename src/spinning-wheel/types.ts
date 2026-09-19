@@ -8,7 +8,6 @@ export type Prize = {
 	id: string
 	name: string
 	image: string
-	onWin: (() => void) | ((animationPromise: Promise<void>) => unknown)
 }
 
 export type WheelColors = {
