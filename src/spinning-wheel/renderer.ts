@@ -3,30 +3,43 @@ import { Prize, SpinningWheelMountProps } from "./types"
 
 export class Renderer {
 	private root?: SpinningWheelMountProps["root"]
-	private prizes: SpinningWheelMountProps["prizes"] = []
 	private wheelColors?: SpinningWheelMountProps["wheelColors"]
+	private prizes: Array<Prize> = []
+	private claimedPrizeId: string | null = null
 
 	private element?: HTMLElement
 
-	setProps(props: SpinningWheelMountProps) {
+	setProps(
+		props: SpinningWheelMountProps & {
+			prizes: Array<Prize>
+			claimedPrizeId: string | null
+		}
+	) {
 		this.root = props.root
 		this.prizes = props.prizes
 		this.wheelColors = props.wheelColors
+		this.claimedPrizeId = props.claimedPrizeId
 	}
 
 	clear() {
 		this.element?.remove()
 		this.element = undefined
+		this.prizes = []
+		this.claimedPrizeId = null
 	}
 
 	createElement(markup: string) {
 		const element = createElement(markup)
 		if (!isHtmlElement(element)) {
+			this.clear()
 			return null
 		}
 
 		this.element = element
 		this.renderPrizes()
+		if (this.claimedPrizeId !== null) {
+			this.renderClaimedPrize(this.claimedPrizeId)
+		}
 		this.fitWheelIntoRoot()
 
 		return element
@@ -57,6 +70,31 @@ export class Renderer {
 		const wheelProperties = this.calculateWheelProperties(segmentsCount)
 		for (const [key, value] of Object.entries(wheelProperties)) {
 			this.element?.style.setProperty(key, value)
+		}
+	}
+
+	renderClaimedPrize(prizeId: Prize["id"]) {
+		const prize = this.prizes.find((prize) => prize.id === prizeId)
+		if (prize === undefined) {
+			return
+		}
+
+		const resultElement = this.element?.querySelector(`.spinning-wheel__result`)
+		if (!isHtmlElement(resultElement)) {
+			return
+		}
+
+		resultElement.style.setProperty(
+			"--bg-image",
+			`url("${CSS.escape(prize.image)}")`
+		)
+		resultElement.classList.add("spinning-wheel__result--visible")
+		resultElement.classList.add("spinning-wheel__result--revealed")
+		this.element?.classList.add("spinning-wheel--result-shown")
+
+		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
+		if (isHtmlElement(button)) {
+			button.disabled = true
 		}
 	}
 

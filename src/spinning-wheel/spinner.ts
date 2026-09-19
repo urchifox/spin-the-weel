@@ -1,18 +1,13 @@
 import { getRandomInteger, isHtmlElement, wait } from "./helpers"
-import { Prize, SpinningWheelMountProps } from "./types"
-
-type SpinResult = {
-	prize: Prize
-	animationPromise: Promise<void>
-}
+import { Prize, SpinResult } from "./types"
 
 export class Spinner {
 	private element?: HTMLElement
-	private prizes: SpinningWheelMountProps["prizes"] = []
+	private prizes: Array<Prize> = []
 	private spinAnimation?: Animation
 	private spinResult: {
 		finalAngle: number
-		index: number
+		prizeIndex: number
 		prize: Prize
 	} | null = null
 
@@ -24,10 +19,7 @@ export class Spinner {
 	private readonly maxSpinMs = 7000
 	private readonly pauseAfterSpinMs = 1000
 
-	setProps(props: {
-		prizes: SpinningWheelMountProps["prizes"]
-		element: HTMLElement
-	}) {
+	setProps(props: { prizes: Array<Prize>; element: HTMLElement }) {
 		this.prizes = props.prizes
 		this.element = props.element
 	}
@@ -40,22 +32,27 @@ export class Spinner {
 		this.spinResult = null
 	}
 
-	spin(): SpinResult | null {
+	spin(prizeId: Prize["id"]): SpinResult | null {
 		if (this.spinResult !== null) {
 			console.warn("SpinningWheel is already spinning")
 			return null
 		}
 
-		const finalAngle = getRandomInteger({ min: 0, max: 359 })
-		const index = this.getWheelSegmentIndex(finalAngle)
-		const prize = this.prizes[index]
+		const prize = this.prizes.find((prize) => prize.id === prizeId)
 		if (prize === undefined) {
 			return null
 		}
 
+		const prizeIndex = this.prizes.indexOf(prize)
+		if (prizeIndex === -1) {
+			return null
+		}
+
+		const finalAngle = this.getWheelAngleForSegmentIndex(prizeIndex)
+
 		this.spinResult = {
 			finalAngle,
-			index,
+			prizeIndex,
 			prize,
 		}
 
@@ -130,7 +127,7 @@ export class Spinner {
 			return
 		}
 
-		const { finalAngle, index, prize } = this.spinResult
+		const { finalAngle, prizeIndex: index, prize } = this.spinResult
 		const prizeElement = this.element?.querySelector(
 			`.spinning-wheel__prize:nth-child(${index + 1})`
 		)
@@ -187,14 +184,21 @@ export class Spinner {
 		})
 	}
 
-	private getWheelSegmentIndex(wheelAngle: number) {
+	private getWheelAngleForSegmentIndex(index: number) {
 		const segmentsCount = this.prizes.length
 		const segmentAngle = 360 / segmentsCount
-		const shifted = (wheelAngle + segmentAngle / 2) % 360
+		const segmentOffset = segmentAngle / 2
+		const segmentStart = index * segmentAngle - segmentOffset
+		const segmentEnd = segmentStart + segmentAngle
 
-		const clockWiseIndex = Math.floor(shifted / segmentAngle)
-		const index = clockWiseIndex === 0 ? 0 : segmentsCount - clockWiseIndex
+		const angle =
+			360 -
+			getRandomInteger({
+				min: segmentStart + 1,
+				max: segmentEnd - 1,
+			})
 
-		return index
+		const normalizedAngle = ((angle % 360) + 360) % 360
+		return normalizedAngle
 	}
 }

@@ -1,5 +1,11 @@
 export type WheelId = string
 
+export type SpinningWheelProps = {
+	id: WheelId
+	authorizer: Authorizer
+	onSpinComplete: (spinResult: SpinResult) => void
+}
+
 export type Authorizer = {
 	getInitialInfo: (id: WheelId) => Promise<
 		| {
@@ -19,7 +25,6 @@ export type Authorizer = {
 
 export type SpinningWheelMountProps = {
 	root: HTMLElement
-	prizes: Array<Prize>
 	wheelColors?: WheelColors
 }
 
@@ -34,4 +39,9 @@ export type WheelColors = {
 	hueEnd?: number
 	saturation?: number
 	lightness?: number
+}
+
+export type SpinResult = {
+	prize: Prize
+	animationPromise: Promise<void>
 }
