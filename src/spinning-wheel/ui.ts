@@ -49,6 +49,7 @@ export class UI {
 		}
 
 		this.element = element
+		root.appendChild(element)
 		this.renderPrizes(prizes)
 		this.setWheelCSSProperties()
 
@@ -66,22 +67,40 @@ export class UI {
 			return
 		}
 
+		const prizeTemplate = document.getElementById(
+			"spinning-wheel-prize-template"
+		)
+		if (!(prizeTemplate instanceof HTMLTemplateElement)) {
+			return
+		}
+		const prizeTemplateElement = prizeTemplate.content.firstElementChild
+		if (!isHtmlElement(prizeTemplateElement)) {
+			return
+		}
+
 		prizes.forEach((prize, index) => {
-			const prizeElement = this.createPrizeElement(prize, index)
+			const prizeElement = this.createPrizeElement({
+				prize,
+				index,
+				prizeTemplateElement,
+			})
 			if (prizeElement !== null) {
 				prizesListElement.appendChild(prizeElement)
 			}
 		})
 	}
 
-	private createPrizeElement(prize: Prize, index: number) {
+	private createPrizeElement({
+		prize,
+		index,
+		prizeTemplateElement,
+	}: {
+		prize: Prize
+		index: number
+		prizeTemplateElement: HTMLElement
+	}) {
 		const { id, name, image } = prize
-		const markup = `
-			<li class="spinning-wheel__prize">
-				<span class="spinning-wheel__prize-icon" aria-hidden="true"></span>
-			</li>
-		`
-		const prizeElement = createElement(markup)
+		const prizeElement = prizeTemplateElement.cloneNode(true)
 		if (!isHtmlElement(prizeElement)) {
 			return null
 		}

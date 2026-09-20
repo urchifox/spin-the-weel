@@ -82,15 +82,13 @@ export class SpinningWheel {
 			return false
 		}
 
-		const root = props.root
-		root.appendChild(element)
 		this.abortController = new AbortController()
 		this.resizeObserver = new ResizeObserver(() =>
 			requestAnimationFrame(() => {
 				this.onResize()
 			})
 		)
-		this.resizeObserver?.observe(root)
+		this.resizeObserver?.observe(props.root)
 		this.setListeners()
 		this.isMounting = false
 		this.isMounted = true
