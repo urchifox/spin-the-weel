@@ -82,8 +82,7 @@ export class Renderer {
 			prizesCount++
 		})
 
-		const segmentsCount = Math.max(prizesCount, 2)
-		this.setWheelCSSProperties(segmentsCount)
+		this.setWheelCSSProperties()
 	}
 
 	renderClaimedPrize(prizeId: Prize["id"]) {
@@ -131,14 +130,14 @@ export class Renderer {
 		return prizeElement
 	}
 
-	private setWheelCSSProperties(segmentsCount: number) {
+	private setWheelCSSProperties() {
 		if (this.element === undefined) {
 			return
 		}
 
 		const { iconSize, sectorAngle, xOffset, yOffset } =
-			this.geometry.getSectorsGeometry(segmentsCount)
-		const gradient = this.getGradient(segmentsCount)
+			this.geometry.getSectorsGeometry()
+		const gradient = this.getGradient()
 
 		const wheelProperties = {
 			"--icon-size": `${iconSize}%`,
@@ -153,10 +152,9 @@ export class Renderer {
 		}
 	}
 
-	private getGradient(segmentsCount: number) {
+	private getGradient() {
 		const { hueStart, hueEnd, saturation, lightness } = this.wheelColors
 		const { startAngle, gradientSteps } = this.geometry.getGradientInfo({
-			segmentsCount,
 			hueStart,
 			hueEnd,
 		})

@@ -54,10 +54,7 @@ export class Spinner {
 			return null
 		}
 
-		const finalAngle = this.geometry.getRandomAngleForSegmentIndex({
-			segmentsCount: this.prizes.length,
-			segmentIndex: prizeIndex,
-		})
+		const finalAngle = this.geometry.getRandomAngleForSegmentIndex(prizeIndex)
 
 		this.spinResult = {
 			finalAngle,
@@ -153,9 +150,7 @@ export class Spinner {
 		// Layout size (not AABB) so rotation does not inflate the scale
 		const scale = prizeElement.offsetWidth / resultSize
 
-		const segmentsCount = this.prizes.length
 		const angle = this.geometry.getAngleOfPrize({
-			segmentsCount: segmentsCount,
 			segmentIndex: index,
 			wheelAngle: finalAngle,
 		})

@@ -48,6 +48,7 @@ export class SpinningWheel {
 			return false
 		}
 
+		this.geometry.setProps({ segmentsCount: prizes.length })
 		this.renderer.setProps({ ...props, prizes, claimedPrizeId })
 		const element = this.renderer.createElement(markup)
 		if (element === null) {
@@ -78,6 +79,7 @@ export class SpinningWheel {
 			return false
 		}
 
+		this.geometry.clear()
 		this.renderer.clear()
 		this.spinner.clear()
 		if (this.resizeTimerId !== null) {

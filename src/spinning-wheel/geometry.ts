@@ -1,22 +1,36 @@
 import { getRandomInteger } from "./helpers"
 
 export class Geometry {
+	private readonly fullWheelAngle = 360
+	private readonly halfWheelAngle = this.fullWheelAngle / 2
+
+	private readonly minSegmentsCount = 2
+	private segmentsCount = this.minSegmentsCount
+	private sectorAngle = this.fullWheelAngle / this.segmentsCount
+	private halfSectorAngle = this.sectorAngle / 2
+
 	private readonly outerRadius = 48
 	private readonly fit = 0.94
 
-	getSectorsGeometry(segmentsCount: number) {
-		const sectorAngle = 360 / segmentsCount
-		const halfAngle = sectorAngle / 2
+	setProps({ segmentsCount }: { segmentsCount: number }) {
+		this.segmentsCount = Math.max(this.minSegmentsCount, segmentsCount)
+		this.sectorAngle = this.fullWheelAngle / this.segmentsCount
+		this.halfSectorAngle = this.sectorAngle / 2
+	}
 
-		const halfAngleRad = (halfAngle * Math.PI) / 180
+	clear() {
+		this.setProps({ segmentsCount: this.minSegmentsCount })
+	}
 
+	getSectorsGeometry() {
+		const sectorAngle = this.sectorAngle
+
+		const halfAngleRad = (this.halfSectorAngle * Math.PI) / this.halfWheelAngle
 		const cotHalf = 1 / Math.tan(halfAngleRad)
 		const A = cotHalf + 2
 		const denom = Math.sqrt(1 + A * A)
-
 		const iconSize = (2 * this.outerRadius * this.fit) / denom
 		const innerRadius = (iconSize * cotHalf) / 2
-
 		const xOffset = 50
 		const yOffset = (innerRadius / iconSize + 1) * 100
 
@@ -28,35 +42,26 @@ export class Geometry {
 		}
 	}
 
-	getGradientInfo({
-		segmentsCount,
-		hueStart,
-		hueEnd,
-	}: {
-		segmentsCount: number
-		hueStart: number
-		hueEnd: number
-	}) {
-		const sectorAngle = 360 / segmentsCount
+	getGradientInfo({ hueStart, hueEnd }: { hueStart: number; hueEnd: number }) {
 		const hueRange = hueEnd - hueStart
 		const gradientSteps: Array<{
 			hue: number
 			startAngle: number
 			endAngle: number
 		}> = []
-		const cyclesRepeat = segmentsCount <= 2 ? 1 : 2
+		const cyclesRepeat = this.segmentsCount <= 2 ? 1 : 2
 
-		for (let i = 0; i < segmentsCount; i++) {
-			const cyclePos = ((i * cyclesRepeat) / segmentsCount) % 1
+		for (let i = 0; i < this.segmentsCount; i++) {
+			const cyclePos = ((i * cyclesRepeat) / this.segmentsCount) % 1
 			const hue = hueStart + cyclePos * hueRange
 			gradientSteps.push({
 				hue,
-				startAngle: i * sectorAngle,
-				endAngle: (i + 1) * sectorAngle,
+				startAngle: i * this.sectorAngle,
+				endAngle: (i + 1) * this.sectorAngle,
 			})
 		}
 
-		const startAngle = sectorAngle / 2
+		const startAngle = this.halfSectorAngle
 
 		return {
 			startAngle,
@@ -64,17 +69,9 @@ export class Geometry {
 		}
 	}
 
-	getRandomAngleForSegmentIndex({
-		segmentsCount,
-		segmentIndex,
-	}: {
-		segmentsCount: number
-		segmentIndex: number
-	}) {
-		const segmentAngle = 360 / segmentsCount
-		const segmentOffset = segmentAngle / 2
-		const segmentStart = segmentIndex * segmentAngle - segmentOffset
-		const segmentEnd = segmentStart + segmentAngle
+	getRandomAngleForSegmentIndex(segmentIndex: number) {
+		const segmentStart = segmentIndex * this.sectorAngle - this.halfSectorAngle
+		const segmentEnd = segmentStart + this.sectorAngle
 
 		const angle =
 			360 -
@@ -88,17 +85,16 @@ export class Geometry {
 	}
 
 	getAngleOfPrize({
-		segmentsCount,
 		segmentIndex,
 		wheelAngle,
 	}: {
-		segmentsCount: number
 		segmentIndex: number
 		wheelAngle: number
 	}) {
-		const sectorAngle = (360 / segmentsCount) * segmentIndex
-		// Shortest path to 0deg so the reveal does not spin the long way
-		const angle = ((((wheelAngle + sectorAngle) % 360) + 540) % 360) - 180
+		// Shortest value to 0deg
+		const angle =
+			((((wheelAngle + this.sectorAngle * segmentIndex) % 360) + 540) % 360) -
+			180
 		return angle
 	}
 
