@@ -1,8 +1,8 @@
-import { Renderer } from "./renderer"
+import { UI } from "./ui"
 import { Prize } from "./types"
 
 export class Spinner {
-	private readonly renderer: Renderer
+	private readonly ui: UI
 
 	private spinAnimation?: Animation
 	private spinResult: {
@@ -10,8 +10,8 @@ export class Spinner {
 		prize: Prize
 	} | null = null
 
-	constructor(props: { renderer: Renderer }) {
-		this.renderer = props.renderer
+	constructor(props: { ui: UI }) {
+		this.ui = props.ui
 	}
 
 	clear() {
@@ -40,7 +40,7 @@ export class Spinner {
 		}
 
 		this.spinAnimation?.cancel()
-		const animation = this.renderer.animateSpin(this.spinResult.prizeIndex)
+		const animation = this.ui.animateSpin(this.spinResult.prizeIndex)
 		this.spinAnimation = animation
 
 		let wasCanceled = false
@@ -58,7 +58,7 @@ export class Spinner {
 			return
 		}
 
-		await this.renderer.animateSpinResult(this.spinResult)
+		await this.ui.animateSpinResult(this.spinResult)
 		this.spinResult = null
 	}
 }

@@ -4,7 +4,7 @@ import { Geometry } from "./geometry"
 import { defaultWheelColors } from "./defaults"
 import { Animator } from "./animator"
 
-export class Renderer {
+export class UI {
 	private readonly geometry: Geometry
 	private readonly animator: Animator
 

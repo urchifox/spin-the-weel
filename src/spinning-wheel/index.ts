@@ -1,6 +1,6 @@
 import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
-import { Renderer } from "./renderer"
+import { UI } from "./ui"
 import { Prize, SpinningWheelMountProps, SpinningWheelProps } from "./types"
 import { Spinner } from "./spinner"
 import { Geometry } from "./geometry"
@@ -14,12 +14,12 @@ export class SpinningWheel {
 
 	private readonly geometry = new Geometry()
 	private readonly animator = new Animator(this.geometry)
-	private readonly renderer = new Renderer({
+	private readonly ui = new UI({
 		geometry: this.geometry,
 		animator: this.animator,
 	})
 	private readonly spinner = new Spinner({
-		renderer: this.renderer,
+		ui: this.ui,
 	})
 
 	private prizes: Array<Prize> = []
@@ -67,11 +67,11 @@ export class SpinningWheel {
 		this.animator.setProps({
 			wheelSpinOptions: props.wheelSpinOptions,
 		})
-		this.renderer.setProps({
+		this.ui.setProps({
 			wheelColors: props.wheelColors,
 			claimedPrize,
 		})
-		const element = this.renderer.createElement({
+		const element = this.ui.createElement({
 			markup,
 			prizes,
 			root: props.root,
@@ -105,7 +105,7 @@ export class SpinningWheel {
 
 		this.geometry.clear()
 		this.animator.clear()
-		this.renderer.clear()
+		this.ui.clear()
 		this.spinner.clear()
 		if (this.resizeTimerId !== null) {
 			clearTimeout(this.resizeTimerId)
@@ -120,7 +120,7 @@ export class SpinningWheel {
 	}
 
 	private setListeners() {
-		this.renderer.setButtonClickHandler(
+		this.ui.setButtonClickHandler(
 			() => this.onButtonClick(),
 			this.abortController?.signal
 		)
@@ -132,12 +132,12 @@ export class SpinningWheel {
 		}
 
 		this.resizeTimerId = setTimeout(() => {
-			this.renderer.fitWheelIntoRoot(this.root ?? document.body)
+			this.ui.fitWheelIntoRoot(this.root ?? document.body)
 		}, 100)
 	}
 
 	private async onButtonClick() {
-		this.renderer.toggleButtonDisabled(true)
+		this.ui.toggleButtonDisabled(true)
 
 		let prizeId: Prize["id"] | null = null
 		let wasSpun = false
@@ -150,20 +150,20 @@ export class SpinningWheel {
 			wasSpun = response.wasSpun
 		} catch (error) {
 			console.error("Failed to request spin with error", error)
-			this.renderer.toggleButtonDisabled(false)
+			this.ui.toggleButtonDisabled(false)
 			return
 		}
 
 		const prizeInfo = this.getPrizeInfoById(prizeId)
 		if (prizeInfo === null) {
 			console.error("Failed to get prize info by id", prizeId)
-			this.renderer.toggleButtonDisabled(false)
+			this.ui.toggleButtonDisabled(false)
 			return
 		}
 
 		if (wasSpun) {
 			console.log("SpinningWheel was already spun")
-			this.renderer.renderClaimedPrize(prizeInfo.prize)
+			this.ui.renderClaimedPrize(prizeInfo.prize)
 			return
 		}
 
