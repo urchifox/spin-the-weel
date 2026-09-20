@@ -72,10 +72,8 @@ export class Renderer {
 		if (this.element === undefined) {
 			return
 		}
-		const prizesListElement = this.element.querySelector(
-			".spinning-wheel__prizes"
-		)
-		if (!isHtmlElement(prizesListElement)) {
+		const prizesListElement = this.getElement(".spinning-wheel__prizes")
+		if (prizesListElement === null) {
 			return
 		}
 
@@ -93,8 +91,8 @@ export class Renderer {
 	}
 
 	renderClaimedPrize(prize: Prize) {
-		const resultElement = this.element?.querySelector(`.spinning-wheel__result`)
-		if (!isHtmlElement(resultElement)) {
+		const resultElement = this.getElement(`.spinning-wheel__result`)
+		if (resultElement === null) {
 			return
 		}
 
@@ -107,7 +105,7 @@ export class Renderer {
 		this.element?.classList.add("spinning-wheel--result-shown")
 
 		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
-		if (isHtmlElement(button)) {
+		if (button !== null) {
 			button.disabled = true
 		}
 	}
@@ -231,8 +229,8 @@ export class Renderer {
 	}
 
 	getSpinningAnimation(prizeIndex: number) {
-		const wheel = this.element?.querySelector(".spinning-wheel__wheel")
-		if (!isHtmlElement(wheel)) {
+		const wheel = this.getElement(".spinning-wheel__wheel")
+		if (wheel === null) {
 			return
 		}
 
@@ -262,17 +260,17 @@ export class Renderer {
 	}
 
 	async animateResult(spinResult: { prizeIndex: number; prize: Prize }) {
-		const wheel = this.element?.querySelector(".spinning-wheel__wheel")
-		if (!isHtmlElement(wheel)) {
+		const wheel = this.getElement(".spinning-wheel__wheel")
+		if (wheel === null) {
 			return
 		}
 
 		const { prizeIndex, prize } = spinResult
-		const prizeElement = this.element?.querySelector(
+		const prizeElement = this.getElement(
 			`.spinning-wheel__prize:nth-child(${prizeIndex + 1})`
 		)
-		const resultElement = this.element?.querySelector(`.spinning-wheel__result`)
-		if (!isHtmlElement(prizeElement) || !isHtmlElement(resultElement)) {
+		const resultElement = this.getElement(`.spinning-wheel__result`)
+		if (prizeElement === null || resultElement === null) {
 			return
 		}
 
