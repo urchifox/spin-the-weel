@@ -255,7 +255,7 @@ export class UI {
 		const wheel = this.getElement(".spinning-wheel__wheel")
 		const { prizeIndex, prize } = spinResult
 		const prizeElement = this.getElement(
-			`.spinning-wheel__prize:nth-child(${prizeIndex + 1})`
+			`.spinning-wheel__prize[data-id="${prize.id}"]`
 		)
 		const resultElement = this.getElement(`.spinning-wheel__result`)
 		if (wheel === null || prizeElement === null || resultElement === null) {
