@@ -4,6 +4,7 @@ import { Renderer } from "./renderer"
 import { Prize, SpinningWheelMountProps, SpinningWheelProps } from "./types"
 import { Spinner } from "./spinner"
 import { Geometry } from "./geometry"
+import { Animator } from "./animator"
 
 export class SpinningWheel {
 	private readonly id: SpinningWheelProps["id"]
@@ -12,7 +13,11 @@ export class SpinningWheel {
 	private root: SpinningWheelMountProps["root"] | null = null
 
 	private readonly geometry = new Geometry()
-	private readonly renderer = new Renderer(this.geometry)
+	private readonly animator = new Animator(this.geometry)
+	private readonly renderer = new Renderer({
+		geometry: this.geometry,
+		animator: this.animator,
+	})
 	private readonly spinner = new Spinner({
 		renderer: this.renderer,
 	})
@@ -59,9 +64,11 @@ export class SpinningWheel {
 			claimedPrizeId === null
 				? null
 				: (this.getPrizeInfoById(claimedPrizeId)?.prize ?? null)
+		this.animator.setProps({
+			wheelSpinOptions: props.wheelSpinOptions,
+		})
 		this.renderer.setProps({
 			wheelColors: props.wheelColors,
-			wheelSpinOptions: props.wheelSpinOptions,
 			claimedPrize,
 		})
 		const element = this.renderer.createElement({
@@ -97,6 +104,7 @@ export class SpinningWheel {
 		}
 
 		this.geometry.clear()
+		this.animator.clear()
 		this.renderer.clear()
 		this.spinner.clear()
 		if (this.resizeTimerId !== null) {
