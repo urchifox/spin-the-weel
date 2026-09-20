@@ -40,9 +40,7 @@ export class Spinner {
 		}
 
 		this.spinAnimation?.cancel()
-		const animation = this.renderer.getSpinningAnimation(
-			this.spinResult.prizeIndex
-		)
+		const animation = this.renderer.animateSpin(this.spinResult.prizeIndex)
 		this.spinAnimation = animation
 
 		let wasCanceled = false
@@ -60,7 +58,7 @@ export class Spinner {
 			return
 		}
 
-		await this.renderer.animateResult(this.spinResult)
+		await this.renderer.animateSpinResult(this.spinResult)
 		this.spinResult = null
 	}
 }

@@ -216,20 +216,19 @@ export class Renderer {
 		}
 	}
 
-	getSpinningAnimation(prizeIndex: number) {
+	animateSpin(prizeIndex: number) {
 		const wheel = this.getElement(".spinning-wheel__wheel")
 		if (wheel === null) {
 			return
 		}
 
-		const animation = this.animator.getSpinningAnimation({
+		return this.animator.getSpinningAnimation({
 			wheel,
 			prizeIndex,
 		})
-		return animation
 	}
 
-	animateResult(spinResult: { prizeIndex: number; prize: Prize }) {
+	animateSpinResult(spinResult: { prizeIndex: number; prize: Prize }) {
 		if (this.element === undefined) {
 			return
 		}
