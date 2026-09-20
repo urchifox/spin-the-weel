@@ -1,5 +1,4 @@
 import { mockPrizes } from "../mock-prizes"
-import { getRandomItem } from "../spinning-wheel/helpers"
 import { Authorizer, Prize, WheelId } from "../spinning-wheel/types"
 
 type WheelInfo = {
@@ -41,7 +40,8 @@ export class MockServerAdapter implements Authorizer {
 		const { prizes, claimedPrizeId } = wheelInfo
 		const wasSpun = claimedPrizeId !== null
 
-		const prizeId = claimedPrizeId ?? getRandomItem(prizes)?.id
+		const prizeId =
+			claimedPrizeId ?? prizes[Math.floor(Math.random() * prizes.length)].id
 		if (prizeId === undefined) {
 			return Promise.resolve({
 				status: "error" as const,
