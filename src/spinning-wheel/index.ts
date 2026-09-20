@@ -10,6 +10,7 @@ export class SpinningWheel {
 	private readonly id: SpinningWheelProps["id"]
 	private readonly authorizer: SpinningWheelProps["authorizer"]
 	private readonly onSpinComplete: SpinningWheelProps["onSpinComplete"]
+	private root: SpinningWheelMountProps["root"] | null = null
 
 	private readonly geometry = new Geometry()
 	private readonly renderer = new Renderer(this.geometry)
@@ -52,14 +53,19 @@ export class SpinningWheel {
 			return false
 		}
 
+		this.root = props.root
 		this.prizes = prizes
 		this.geometry.setProps({ segmentsCount: prizes.length })
 		const claimedPrize =
 			claimedPrizeId === null
 				? null
 				: (this.getPrizeInfoById(claimedPrizeId)?.prize ?? null)
-		this.renderer.setProps({ ...props, claimedPrize })
-		const element = this.renderer.createElement({ markup, prizes })
+		this.renderer.setProps({ wheelColors: props.wheelColors, claimedPrize })
+		const element = this.renderer.createElement({
+			markup,
+			prizes,
+			root: props.root,
+		})
 		if (element === null) {
 			console.error("Failed to mount SpinningWheel")
 			this.isMounting = false
@@ -115,7 +121,7 @@ export class SpinningWheel {
 		}
 
 		this.resizeTimerId = setTimeout(() => {
-			this.renderer.fitWheelIntoRoot()
+			this.renderer.fitWheelIntoRoot(this.root ?? document.body)
 		}, 100)
 	}
 

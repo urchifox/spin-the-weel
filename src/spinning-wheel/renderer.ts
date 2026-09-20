@@ -1,10 +1,9 @@
 import { createElement, getRandomInteger, isHtmlElement, wait } from "./helpers"
-import { Prize, SpinningWheelMountProps, WheelColors } from "./types"
+import { Prize, WheelColors } from "./types"
 import { Geometry } from "./geometry"
 
 export class Renderer {
 	private readonly geometry: Geometry
-	private root?: SpinningWheelMountProps["root"]
 	private claimedPrize: Prize | null = null
 
 	private element?: HTMLElement
@@ -31,12 +30,7 @@ export class Renderer {
 		this.geometry = geometry
 	}
 
-	setProps(
-		props: SpinningWheelMountProps & {
-			claimedPrize: Prize | null
-		}
-	) {
-		this.root = props.root
+	setProps(props: { claimedPrize: Prize | null; wheelColors?: WheelColors }) {
 		this.wheelColors = {
 			...this.defaultWheelColors,
 			...(props.wheelColors ?? {}),
@@ -51,7 +45,15 @@ export class Renderer {
 		this.finalAngle = 0
 	}
 
-	createElement({ markup, prizes }: { markup: string; prizes: Array<Prize> }) {
+	createElement({
+		markup,
+		prizes,
+		root,
+	}: {
+		markup: string
+		prizes: Array<Prize>
+		root: HTMLElement
+	}) {
 		const element = createElement(markup)
 		if (!isHtmlElement(element)) {
 			this.clear()
@@ -63,7 +65,7 @@ export class Renderer {
 		if (this.claimedPrize !== null) {
 			this.renderClaimedPrize(this.claimedPrize)
 		}
-		this.fitWheelIntoRoot()
+		this.fitWheelIntoRoot(root)
 
 		return element
 	}
@@ -167,15 +169,15 @@ export class Renderer {
 		return gradient
 	}
 
-	fitWheelIntoRoot() {
-		if (this.element === undefined || this.root === undefined) {
+	fitWheelIntoRoot(root: HTMLElement) {
+		if (this.element === undefined) {
 			return
 		}
 
 		this.element.style.setProperty("--wheel-size", "")
 		this.element.style.setProperty("--root-size", "")
 
-		const rootStyles = getComputedStyle(this.root)
+		const rootStyles = getComputedStyle(root)
 		const rootPaddingLeft = parseFloat(rootStyles.paddingLeft)
 		const rootPaddingRight = parseFloat(rootStyles.paddingRight)
 		const rootPaddingTop = parseFloat(rootStyles.paddingTop)
@@ -186,13 +188,13 @@ export class Renderer {
 		const rootBorderBottomWidth = parseFloat(rootStyles.borderBottomWidth)
 
 		const rootInnerWidth =
-			this.root.clientWidth -
+			root.clientWidth -
 			rootPaddingLeft -
 			rootPaddingRight -
 			rootBorderLeftWidth -
 			rootBorderRightWidth
 		const rootInnerHeight =
-			this.root.clientHeight -
+			root.clientHeight -
 			rootPaddingTop -
 			rootPaddingBottom -
 			rootBorderTopWidth -
