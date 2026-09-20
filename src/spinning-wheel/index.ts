@@ -169,9 +169,14 @@ export class SpinningWheel {
 		}
 
 		const animationPromise = this.spinner.spin(prizeInfo)
+		if (animationPromise === null) {
+			console.warn("SpinningWheel is already spinning")
+			return
+		}
+
 		const spinResult = {
 			prize: prizeInfo.prize,
-			animationPromise: animationPromise ?? Promise.resolve(),
+			animationPromise: animationPromise,
 		}
 		this.onSpinComplete(spinResult)
 	}
