@@ -1,33 +1,16 @@
 import { createElement, getRandomInteger, isHtmlElement, wait } from "./helpers"
 import { Prize, WheelColors, WheelSpinOptions } from "./types"
 import { Geometry } from "./geometry"
+import { defaultWheelColors, defaultWheelSpinOptions } from "./defaults"
 
 export class Renderer {
 	private readonly geometry: Geometry
+
 	private claimedPrize: Prize | null = null
+	private wheelColors: Required<WheelColors> = defaultWheelColors
+	private wheelSpinOptions: Required<WheelSpinOptions> = defaultWheelSpinOptions
 
 	private element?: HTMLElement
-
-	private readonly defaultWheelColors = {
-		hueStart: 0,
-		hueEnd: 360,
-		saturation: 100,
-		lightness: 50,
-	} satisfies WheelColors
-	private wheelColors: Required<WheelColors> = this.defaultWheelColors
-
-	private readonly defaultWheelSpinOptions = {
-		windupDeg: -33,
-		windupMs: 500,
-		minTurns: 3,
-		maxTurns: 5,
-		minSpinMs: 5000,
-		maxSpinMs: 7000,
-		pauseAfterSpinMs: 1000,
-	} satisfies WheelSpinOptions
-	private wheelSpinOptions: Required<WheelSpinOptions> =
-		this.defaultWheelSpinOptions
-
 	private finalAngle = 0
 
 	constructor(geometry: Geometry) {
@@ -40,11 +23,11 @@ export class Renderer {
 		wheelSpinOptions?: WheelSpinOptions
 	}) {
 		this.wheelColors = {
-			...this.defaultWheelColors,
+			...defaultWheelColors,
 			...(props.wheelColors ?? {}),
 		}
 		this.wheelSpinOptions = {
-			...this.defaultWheelSpinOptions,
+			...defaultWheelSpinOptions,
 			...(props.wheelSpinOptions ?? {}),
 		}
 		this.claimedPrize = props.claimedPrize
@@ -53,6 +36,8 @@ export class Renderer {
 	clear() {
 		this.element?.remove()
 		this.element = undefined
+		this.wheelColors = defaultWheelColors
+		this.wheelSpinOptions = defaultWheelSpinOptions
 		this.claimedPrize = null
 		this.finalAngle = 0
 	}
