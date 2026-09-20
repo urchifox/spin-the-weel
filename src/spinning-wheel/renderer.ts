@@ -59,6 +59,8 @@ export class Renderer {
 
 		this.element = element
 		this.renderPrizes(prizes)
+		this.setWheelCSSProperties()
+
 		if (this.claimedPrize !== null) {
 			this.renderClaimedPrize(this.claimedPrize)
 		}
@@ -68,45 +70,17 @@ export class Renderer {
 	}
 
 	private renderPrizes(prizes: Array<Prize>) {
-		if (this.element === undefined) {
-			return
-		}
 		const prizesListElement = this.getElement(".spinning-wheel__prizes")
 		if (prizesListElement === null) {
 			return
 		}
 
-		let prizesCount = 0
-		prizes.forEach((prize) => {
-			const prizeElement = this.createPrizeElement(prize, prizesCount)
-			if (prizeElement === null) {
-				return
+		prizes.forEach((prize, index) => {
+			const prizeElement = this.createPrizeElement(prize, index)
+			if (prizeElement !== null) {
+				prizesListElement.appendChild(prizeElement)
 			}
-			prizesListElement.appendChild(prizeElement)
-			prizesCount++
 		})
-
-		this.setWheelCSSProperties()
-	}
-
-	renderClaimedPrize(prize: Prize) {
-		const resultElement = this.getElement(`.spinning-wheel__result`)
-		if (resultElement === null) {
-			return
-		}
-
-		resultElement.style.setProperty(
-			"--bg-image",
-			`url("${CSS.escape(prize.image)}")`
-		)
-		resultElement.classList.add("spinning-wheel__result--visible")
-		resultElement.classList.add("spinning-wheel__result--revealed")
-		this.element?.classList.add("spinning-wheel--result-shown")
-
-		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
-		if (button !== null) {
-			button.disabled = true
-		}
 	}
 
 	private createPrizeElement(prize: Prize, index: number) {
@@ -166,6 +140,23 @@ export class Renderer {
 		return gradient
 	}
 
+	renderClaimedPrize(prize: Prize) {
+		const resultElement = this.getElement(`.spinning-wheel__result`)
+		if (resultElement === null) {
+			return
+		}
+
+		resultElement.style.setProperty(
+			"--bg-image",
+			`url("${CSS.escape(prize.image)}")`
+		)
+		resultElement.classList.add("spinning-wheel__result--visible")
+		resultElement.classList.add("spinning-wheel__result--revealed")
+		this.element?.classList.add("spinning-wheel--result-shown")
+
+		this.toggleButtonDisabled(true)
+	}
+
 	fitWheelIntoRoot(root: HTMLElement) {
 		if (this.element === undefined) {
 			return
@@ -217,14 +208,21 @@ export class Renderer {
 		this.element.style.setProperty("--wheel-size", `${wheelSize}px`)
 	}
 
-	getElement<T extends HTMLElement>(selector?: string): T | null {
-		if (this.element === undefined) {
-			return null
+	setButtonClickHandler(
+		callback: (event: Event) => void,
+		signal?: AbortSignal
+	) {
+		const button = this.getElement(".spinning-wheel__button")
+		button?.addEventListener("click", callback, {
+			signal,
+		})
+	}
+
+	toggleButtonDisabled(disabled: boolean) {
+		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
+		if (button !== null) {
+			button.disabled = disabled
 		}
-		if (selector === undefined) {
-			return (this.element as T) ?? null
-		}
-		return (this.element.querySelector(selector) as T) ?? null
 	}
 
 	getSpinningAnimation(prizeIndex: number) {
@@ -319,5 +317,17 @@ export class Renderer {
 				})
 			})
 		})
+	}
+
+	private getElement<T extends HTMLElement>(selector?: string): T | null {
+		if (this.element === undefined) {
+			return null
+		}
+
+		if (selector === undefined) {
+			return (this.element as T) ?? null
+		}
+
+		return (this.element.querySelector(selector) as T) ?? null
 	}
 }

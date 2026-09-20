@@ -3,7 +3,6 @@ import "./styles/spinningWheel.css"
 import { Renderer } from "./renderer"
 import { Prize, SpinningWheelMountProps, SpinningWheelProps } from "./types"
 import { Spinner } from "./spinner"
-import { isHtmlElement } from "./helpers"
 import { Geometry } from "./geometry"
 
 export class SpinningWheel {
@@ -113,10 +112,10 @@ export class SpinningWheel {
 	}
 
 	private setListeners() {
-		const button = this.renderer.getElement(".spinning-wheel__button")
-		button?.addEventListener("click", () => this.onButtonClick(), {
-			signal: this.abortController?.signal,
-		})
+		this.renderer.setButtonClickHandler(
+			() => this.onButtonClick(),
+			this.abortController?.signal
+		)
 	}
 
 	private onResize() {
@@ -130,13 +129,7 @@ export class SpinningWheel {
 	}
 
 	private async onButtonClick() {
-		const button = this.renderer.getElement<HTMLButtonElement>(
-			".spinning-wheel__button"
-		)
-		if (!isHtmlElement(button)) {
-			return
-		}
-		button.disabled = true
+		this.renderer.toggleButtonDisabled(true)
 
 		let prizeId: Prize["id"] | null = null
 		let wasSpun = false
@@ -149,14 +142,14 @@ export class SpinningWheel {
 			wasSpun = response.wasSpun
 		} catch (error) {
 			console.error("Failed to request spin with error", error)
-			button.disabled = false
+			this.renderer.toggleButtonDisabled(false)
 			return
 		}
 
 		const prizeInfo = this.getPrizeInfoById(prizeId)
 		if (prizeInfo === null) {
 			console.error("Failed to get prize info by id", prizeId)
-			button.disabled = false
+			this.renderer.toggleButtonDisabled(false)
 			return
 		}
 
