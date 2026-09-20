@@ -10,15 +10,10 @@ export class SpinningWheel {
 	private readonly onSpinComplete: SpinningWheelProps["onSpinComplete"]
 	private root: SpinningWheelMountProps["root"] | null = null
 
-	private readonly geometry = new Geometry()
-	private readonly animator = new Animator(this.geometry)
-	private readonly ui = new UI({
-		geometry: this.geometry,
-		animator: this.animator,
-	})
-	private readonly spinner = new Spinner({
-		ui: this.ui,
-	})
+	private readonly geometry: Geometry
+	private readonly animator: Animator
+	private readonly ui: UI
+	private readonly spinner: Spinner
 
 	private prizes: Array<Prize> = []
 	private resizeTimerId: number | null = null
@@ -31,6 +26,16 @@ export class SpinningWheel {
 		this.id = props.id
 		this.authorizer = props.authorizer
 		this.onSpinComplete = props.onSpinComplete
+
+		this.geometry = new Geometry()
+		this.animator = new Animator(this.geometry)
+		this.ui = new UI({
+			geometry: this.geometry,
+			animator: this.animator,
+		})
+		this.spinner = new Spinner({
+			ui: this.ui,
+		})
 	}
 
 	async mount(props: SpinningWheelMountProps) {
