@@ -60,7 +60,11 @@ export class SpinningWheel {
 			claimedPrizeId === null
 				? null
 				: (this.getPrizeInfoById(claimedPrizeId)?.prize ?? null)
-		this.renderer.setProps({ wheelColors: props.wheelColors, claimedPrize })
+		this.renderer.setProps({
+			wheelColors: props.wheelColors,
+			wheelSpinOptions: props.wheelSpinOptions,
+			claimedPrize,
+		})
 		const element = this.renderer.createElement({
 			markup,
 			prizes,

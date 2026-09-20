@@ -26,6 +26,7 @@ export type Authorizer = {
 export type SpinningWheelMountProps = {
 	root: HTMLElement
 	wheelColors?: WheelColors
+	wheelSpinOptions?: WheelSpinOptions
 }
 
 export type Prize = {
@@ -39,6 +40,16 @@ export type WheelColors = {
 	hueEnd?: number
 	saturation?: number
 	lightness?: number
+}
+
+export type WheelSpinOptions = {
+	windupDeg?: number
+	windupMs?: number
+	minTurns?: number
+	maxTurns?: number
+	minSpinMs?: number
+	maxSpinMs?: number
+	pauseAfterSpinMs?: number
 }
 
 export type SpinResult = {

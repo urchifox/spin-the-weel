@@ -1,5 +1,5 @@
 import { createElement, getRandomInteger, isHtmlElement, wait } from "./helpers"
-import { Prize, WheelColors } from "./types"
+import { Prize, WheelColors, WheelSpinOptions } from "./types"
 import { Geometry } from "./geometry"
 
 export class Renderer {
@@ -16,13 +16,17 @@ export class Renderer {
 	} satisfies WheelColors
 	private wheelColors: Required<WheelColors> = this.defaultWheelColors
 
-	private readonly windupDeg = -33
-	private readonly windupMs = 500
-	private readonly minTurns = 3
-	private readonly maxTurns = 5
-	private readonly minSpinMs = 5000
-	private readonly maxSpinMs = 7000
-	private readonly pauseAfterSpinMs = 1000
+	private readonly defaultWheelSpinOptions = {
+		windupDeg: -33,
+		windupMs: 500,
+		minTurns: 3,
+		maxTurns: 5,
+		minSpinMs: 5000,
+		maxSpinMs: 7000,
+		pauseAfterSpinMs: 1000,
+	} satisfies WheelSpinOptions
+	private wheelSpinOptions: Required<WheelSpinOptions> =
+		this.defaultWheelSpinOptions
 
 	private finalAngle = 0
 
@@ -30,10 +34,18 @@ export class Renderer {
 		this.geometry = geometry
 	}
 
-	setProps(props: { claimedPrize: Prize | null; wheelColors?: WheelColors }) {
+	setProps(props: {
+		claimedPrize: Prize | null
+		wheelColors?: WheelColors
+		wheelSpinOptions?: WheelSpinOptions
+	}) {
 		this.wheelColors = {
 			...this.defaultWheelColors,
 			...(props.wheelColors ?? {}),
+		}
+		this.wheelSpinOptions = {
+			...this.defaultWheelSpinOptions,
+			...(props.wheelSpinOptions ?? {}),
 		}
 		this.claimedPrize = props.claimedPrize
 	}
@@ -237,20 +249,22 @@ export class Renderer {
 		}
 
 		this.finalAngle = this.geometry.getRandomAngleForSegmentIndex(prizeIndex)
-		const turns = getRandomInteger({ min: this.minTurns, max: this.maxTurns })
+		const { minTurns, maxTurns, minSpinMs, maxSpinMs, windupMs, windupDeg } =
+			this.wheelSpinOptions
+		const turns = getRandomInteger({ min: minTurns, max: maxTurns })
 		const endDeg = turns * 360 + this.finalAngle
 		const spinMs = getRandomInteger({
-			min: this.minSpinMs,
-			max: this.maxSpinMs,
+			min: minSpinMs,
+			max: maxSpinMs,
 		})
-		const totalMs = this.windupMs + spinMs
-		const windupOffset = this.windupMs / totalMs
+		const totalMs = windupMs + spinMs
+		const windupOffset = windupMs / totalMs
 
 		const animation = wheel.animate(
 			[
 				{ transform: "rotate(0deg)", offset: 0, easing: "ease-in-out" },
 				{
-					transform: `rotate(${this.windupDeg}deg)`,
+					transform: `rotate(${windupDeg}deg)`,
 					offset: windupOffset,
 					easing: "cubic-bezier(0.1, 0.7, 0.15, 1)",
 				},
@@ -281,7 +295,7 @@ export class Renderer {
 			return
 		}
 
-		await wait(this.pauseAfterSpinMs)
+		await wait(this.wheelSpinOptions.pauseAfterSpinMs)
 
 		// Layout size (not AABB) so rotation does not inflate the scale
 		const scale = prizeElement.offsetWidth / resultSize
