@@ -1,13 +1,26 @@
 import { createElement, isHtmlElement } from "./helpers"
-import { Prize, SpinningWheelMountProps } from "./types"
+import { Prize, SpinningWheelMountProps, WheelColors } from "./types"
+import { Geometry } from "./geometry"
 
 export class Renderer {
+	private readonly geometry: Geometry
 	private root?: SpinningWheelMountProps["root"]
-	private wheelColors?: SpinningWheelMountProps["wheelColors"]
 	private prizes: Array<Prize> = []
 	private claimedPrizeId: string | null = null
 
 	private element?: HTMLElement
+
+	private readonly defaultWheelColors = {
+		hueStart: 0,
+		hueEnd: 360,
+		saturation: 100,
+		lightness: 50,
+	} satisfies WheelColors
+	private wheelColors: Required<WheelColors> = this.defaultWheelColors
+
+	constructor(geometry: Geometry) {
+		this.geometry = geometry
+	}
 
 	setProps(
 		props: SpinningWheelMountProps & {
@@ -17,7 +30,10 @@ export class Renderer {
 	) {
 		this.root = props.root
 		this.prizes = props.prizes
-		this.wheelColors = props.wheelColors
+		this.wheelColors = {
+			...this.defaultWheelColors,
+			...(props.wheelColors ?? {}),
+		}
 		this.claimedPrizeId = props.claimedPrizeId
 	}
 
@@ -67,10 +83,7 @@ export class Renderer {
 		})
 
 		const segmentsCount = Math.max(prizesCount, 2)
-		const wheelProperties = this.calculateWheelProperties(segmentsCount)
-		for (const [key, value] of Object.entries(wheelProperties)) {
-			this.element?.style.setProperty(key, value)
-		}
+		this.setWheelCSSProperties(segmentsCount)
 	}
 
 	renderClaimedPrize(prizeId: Prize["id"]) {
@@ -118,59 +131,42 @@ export class Renderer {
 		return prizeElement
 	}
 
-	private calculateWheelProperties(segmentsCount: number) {
-		const sectorAngle = 360 / segmentsCount
-		const halfAngle = sectorAngle / 2
+	private setWheelCSSProperties(segmentsCount: number) {
+		if (this.element === undefined) {
+			return
+		}
 
-		const outerRadius = 48
-		const fit = 0.94
-		const halfAngleRad = (halfAngle * Math.PI) / 180
-
-		const cotHalf = 1 / Math.tan(halfAngleRad)
-		const A = cotHalf + 2
-		const denom = Math.sqrt(1 + A * A)
-
-		const iconSize = (2 * outerRadius * fit) / denom
-		const innerRadius = (iconSize * cotHalf) / 2
-
-		const xOffset = 50
-		const yOffset = (innerRadius / iconSize + 1) * 100
-
+		const { iconSize, sectorAngle, xOffset, yOffset } =
+			this.geometry.getSectorsGeometry(segmentsCount)
 		const gradient = this.getGradient(segmentsCount)
 
-		return {
+		const wheelProperties = {
 			"--icon-size": `${iconSize}%`,
 			"--sector-angle": `${sectorAngle}deg`,
 			"--x-offset": `${xOffset}%`,
 			"--y-offset": `${yOffset}%`,
 			"--wheel-gradient": gradient,
 		}
+
+		for (const [key, value] of Object.entries(wheelProperties)) {
+			this.element.style.setProperty(key, value)
+		}
 	}
 
 	private getGradient(segmentsCount: number) {
-		const {
-			hueStart = 0,
-			hueEnd = 360,
-			saturation = 100,
-			lightness = 50,
-		} = this.wheelColors ?? {}
-
-		const angleStep = 360 / segmentsCount
-		const hueRange = hueEnd - hueStart
-		const stops = []
-
-		for (let i = 0; i < segmentsCount; i++) {
-			const cyclesRepeat = segmentsCount <= 2 ? 1 : 2
-			const cyclePos = ((i * cyclesRepeat) / segmentsCount) % 1
-			const hue = hueStart + cyclePos * hueRange
-
+		const { hueStart, hueEnd, saturation, lightness } = this.wheelColors
+		const { startAngle, gradientSteps } = this.geometry.getGradientInfo({
+			segmentsCount,
+			hueStart,
+			hueEnd,
+		})
+		const colorStops = gradientSteps.map(({ hue, startAngle, endAngle }) => {
 			const color = `hsl(${hue}deg ${saturation}% ${lightness}%)`
-			stops.push(`${color} ${i * angleStep}deg ${(i + 1) * angleStep}deg`)
-		}
-
-		const angle = 360 / segmentsCount / 2
-
-		return `conic-gradient(from ${angle}deg, ${stops.join(", ")})`
+			const colorStop = `${color} ${startAngle}deg ${endAngle}deg`
+			return colorStop
+		})
+		const gradient = `conic-gradient(from ${startAngle}deg, ${colorStops.join(", ")})`
+		return gradient
 	}
 
 	fitWheelIntoRoot() {

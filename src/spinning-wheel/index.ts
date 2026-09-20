@@ -4,14 +4,16 @@ import { Renderer } from "./renderer"
 import { Prize, SpinningWheelMountProps, SpinningWheelProps } from "./types"
 import { Spinner } from "./spinner"
 import { isHtmlElement } from "./helpers"
+import { Geometry } from "./geometry"
 
 export class SpinningWheel {
 	private readonly id: SpinningWheelProps["id"]
 	private readonly authorizer: SpinningWheelProps["authorizer"]
 	private readonly onSpinComplete: SpinningWheelProps["onSpinComplete"]
 
-	private readonly renderer = new Renderer()
-	private readonly spinner = new Spinner()
+	private readonly geometry = new Geometry()
+	private readonly renderer = new Renderer(this.geometry)
+	private readonly spinner = new Spinner(this.geometry)
 	private resizeTimerId: number | null = null
 	private resizeObserver?: ResizeObserver
 	private abortController?: AbortController

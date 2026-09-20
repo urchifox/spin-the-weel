@@ -1,7 +1,9 @@
+import { Geometry } from "./geometry"
 import { getRandomInteger, isHtmlElement, wait } from "./helpers"
 import { Prize, SpinResult } from "./types"
 
 export class Spinner {
+	private readonly geometry: Geometry
 	private element?: HTMLElement
 	private prizes: Array<Prize> = []
 	private spinAnimation?: Animation
@@ -18,6 +20,10 @@ export class Spinner {
 	private readonly minSpinMs = 5000
 	private readonly maxSpinMs = 7000
 	private readonly pauseAfterSpinMs = 1000
+
+	constructor(geometry: Geometry) {
+		this.geometry = geometry
+	}
 
 	setProps(props: { prizes: Array<Prize>; element: HTMLElement }) {
 		this.prizes = props.prizes
@@ -48,7 +54,10 @@ export class Spinner {
 			return null
 		}
 
-		const finalAngle = this.getWheelAngleForSegmentIndex(prizeIndex)
+		const finalAngle = this.geometry.getRandomAngleForSegmentIndex({
+			segmentsCount: this.prizes.length,
+			segmentIndex: prizeIndex,
+		})
 
 		this.spinResult = {
 			finalAngle,
@@ -136,9 +145,6 @@ export class Spinner {
 			return
 		}
 
-		const prizeRect = prizeElement.getBoundingClientRect()
-		const wheelRect = wheel.getBoundingClientRect()
-
 		const resultSize = resultElement.offsetWidth
 		if (resultSize === 0) {
 			return
@@ -147,18 +153,19 @@ export class Spinner {
 		// Layout size (not AABB) so rotation does not inflate the scale
 		const scale = prizeElement.offsetWidth / resultSize
 
-		const sectorAngle = (360 / this.prizes.length) * index
-		// Shortest path to 0deg so the reveal does not spin the long way
-		const angle = ((((finalAngle + sectorAngle) % 360) + 540) % 360) - 180
+		const segmentsCount = this.prizes.length
+		const angle = this.geometry.getAngleOfPrize({
+			segmentsCount: segmentsCount,
+			segmentIndex: index,
+			wheelAngle: finalAngle,
+		})
 
-		const dx =
-			prizeRect.left +
-			prizeRect.width / 2 -
-			(wheelRect.left + wheelRect.width / 2)
-		const dy =
-			prizeRect.top +
-			prizeRect.height / 2 -
-			(wheelRect.top + wheelRect.height / 2)
+		const prizeRect = prizeElement.getBoundingClientRect()
+		const wheelRect = wheel.getBoundingClientRect()
+		const { dx, dy } = this.geometry.getPrizeOffset({
+			prizeRect,
+			wheelRect,
+		})
 
 		resultElement.style.setProperty(
 			"--bg-image",
@@ -182,23 +189,5 @@ export class Spinner {
 				})
 			})
 		})
-	}
-
-	private getWheelAngleForSegmentIndex(index: number) {
-		const segmentsCount = this.prizes.length
-		const segmentAngle = 360 / segmentsCount
-		const segmentOffset = segmentAngle / 2
-		const segmentStart = index * segmentAngle - segmentOffset
-		const segmentEnd = segmentStart + segmentAngle
-
-		const angle =
-			360 -
-			getRandomInteger({
-				min: segmentStart + 1,
-				max: segmentEnd - 1,
-			})
-
-		const normalizedAngle = ((angle % 360) + 360) % 360
-		return normalizedAngle
 	}
 }
