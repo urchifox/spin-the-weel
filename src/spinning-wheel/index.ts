@@ -13,7 +13,10 @@ export class SpinningWheel {
 
 	private readonly geometry = new Geometry()
 	private readonly renderer = new Renderer(this.geometry)
-	private readonly spinner = new Spinner(this.geometry)
+	private readonly spinner = new Spinner({
+		renderer: this.renderer,
+	})
+
 	private resizeTimerId: number | null = null
 	private resizeObserver?: ResizeObserver
 	private abortController?: AbortController
@@ -59,7 +62,7 @@ export class SpinningWheel {
 
 		const root = props.root
 		root.appendChild(element)
-		this.spinner.setProps({ prizes, element })
+		this.spinner.setProps({ prizes })
 		this.abortController = new AbortController()
 		this.resizeObserver = new ResizeObserver(() =>
 			requestAnimationFrame(() => {

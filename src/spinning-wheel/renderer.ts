@@ -1,4 +1,4 @@
-import { createElement, isHtmlElement } from "./helpers"
+import { createElement, getRandomInteger, isHtmlElement, wait } from "./helpers"
 import { Prize, SpinningWheelMountProps, WheelColors } from "./types"
 import { Geometry } from "./geometry"
 
@@ -17,6 +17,16 @@ export class Renderer {
 		lightness: 50,
 	} satisfies WheelColors
 	private wheelColors: Required<WheelColors> = this.defaultWheelColors
+
+	private readonly windupDeg = -33
+	private readonly windupMs = 500
+	private readonly minTurns = 3
+	private readonly maxTurns = 5
+	private readonly minSpinMs = 5000
+	private readonly maxSpinMs = 7000
+	private readonly pauseAfterSpinMs = 1000
+
+	private finalAngle = 0
 
 	constructor(geometry: Geometry) {
 		this.geometry = geometry
@@ -42,6 +52,7 @@ export class Renderer {
 		this.element = undefined
 		this.prizes = []
 		this.claimedPrizeId = null
+		this.finalAngle = 0
 	}
 
 	createElement(markup: string) {
@@ -226,5 +237,97 @@ export class Renderer {
 			return (this.element as T) ?? null
 		}
 		return (this.element.querySelector(selector) as T) ?? null
+	}
+
+	getSpinningAnimation(prizeIndex: number) {
+		const wheel = this.element?.querySelector(".spinning-wheel__wheel")
+		if (!isHtmlElement(wheel)) {
+			return
+		}
+
+		this.finalAngle = this.geometry.getRandomAngleForSegmentIndex(prizeIndex)
+		const turns = getRandomInteger({ min: this.minTurns, max: this.maxTurns })
+		const endDeg = turns * 360 + this.finalAngle
+		const spinMs = getRandomInteger({
+			min: this.minSpinMs,
+			max: this.maxSpinMs,
+		})
+		const totalMs = this.windupMs + spinMs
+		const windupOffset = this.windupMs / totalMs
+
+		const animation = wheel.animate(
+			[
+				{ transform: "rotate(0deg)", offset: 0, easing: "ease-in-out" },
+				{
+					transform: `rotate(${this.windupDeg}deg)`,
+					offset: windupOffset,
+					easing: "cubic-bezier(0.1, 0.7, 0.15, 1)",
+				},
+				{ transform: `rotate(${endDeg}deg)`, offset: 1 },
+			],
+			{ duration: totalMs, fill: "forwards" }
+		)
+		return animation
+	}
+
+	async animateResult(spinResult: { prizeIndex: number; prize: Prize }) {
+		const wheel = this.element?.querySelector(".spinning-wheel__wheel")
+		if (!isHtmlElement(wheel)) {
+			return
+		}
+
+		const { prizeIndex, prize } = spinResult
+		const prizeElement = this.element?.querySelector(
+			`.spinning-wheel__prize:nth-child(${prizeIndex + 1})`
+		)
+		const resultElement = this.element?.querySelector(`.spinning-wheel__result`)
+		if (!isHtmlElement(prizeElement) || !isHtmlElement(resultElement)) {
+			return
+		}
+
+		const resultSize = resultElement.offsetWidth
+		if (resultSize === 0) {
+			return
+		}
+
+		await wait(this.pauseAfterSpinMs)
+
+		// Layout size (not AABB) so rotation does not inflate the scale
+		const scale = prizeElement.offsetWidth / resultSize
+
+		const angle = this.geometry.getAngleOfPrize({
+			segmentIndex: prizeIndex,
+			wheelAngle: this.finalAngle,
+		})
+
+		const prizeRect = prizeElement.getBoundingClientRect()
+		const wheelRect = wheel.getBoundingClientRect()
+		const { dx, dy } = this.geometry.getPrizeOffset({
+			prizeRect,
+			wheelRect,
+		})
+
+		resultElement.style.setProperty(
+			"--bg-image",
+			`url("${CSS.escape(prize.image)}")`
+		)
+		resultElement.style.transition = "none"
+		resultElement.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) rotate(${angle}deg) scale(${scale})`
+		resultElement.classList.add("spinning-wheel__result--visible")
+
+		return new Promise<void>((resolve) => {
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					resultElement.style.transition = ""
+					resultElement.classList.add("spinning-wheel__result--revealed")
+					resultElement.style.transform =
+						"translate(-50%, -50%) rotate(0deg) scale(1)"
+					this.element?.classList.add("spinning-wheel--result-shown")
+					resultElement.addEventListener("transitionend", () => resolve(), {
+						once: true,
+					})
+				})
+			})
+		})
 	}
 }
