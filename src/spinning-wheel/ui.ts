@@ -67,10 +67,10 @@ export class UI {
 			return
 		}
 
-		const prizeTemplate = document.getElementById(
-			"spinning-wheel-prize-template"
+		const prizeTemplate = this.getElement<HTMLTemplateElement>(
+			"#spinning-wheel-prize-template"
 		)
-		if (!(prizeTemplate instanceof HTMLTemplateElement)) {
+		if (prizeTemplate === null) {
 			return
 		}
 		const prizeTemplateElement = prizeTemplate.content.firstElementChild
