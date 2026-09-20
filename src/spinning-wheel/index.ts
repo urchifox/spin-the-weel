@@ -17,6 +17,7 @@ export class SpinningWheel {
 		renderer: this.renderer,
 	})
 
+	private prizes: Array<Prize> = []
 	private resizeTimerId: number | null = null
 	private resizeObserver?: ResizeObserver
 	private abortController?: AbortController
@@ -51,6 +52,7 @@ export class SpinningWheel {
 			return false
 		}
 
+		this.prizes = prizes
 		this.geometry.setProps({ segmentsCount: prizes.length })
 		this.renderer.setProps({ ...props, prizes, claimedPrizeId })
 		const element = this.renderer.createElement(markup)
@@ -62,7 +64,6 @@ export class SpinningWheel {
 
 		const root = props.root
 		root.appendChild(element)
-		this.spinner.setProps({ prizes })
 		this.abortController = new AbortController()
 		this.resizeObserver = new ResizeObserver(() =>
 			requestAnimationFrame(() => {
@@ -144,11 +145,34 @@ export class SpinningWheel {
 			return
 		}
 
-		const spinResult = this.spinner.spin(prizeId)
-		if (spinResult === null) {
+		const prizeInfo = this.getPrizeInfoById(prizeId)
+		if (prizeInfo === null) {
 			button.disabled = false
 			return
 		}
+
+		const animationPromise = this.spinner.spin(prizeInfo)
+		const spinResult = {
+			prize: prizeInfo.prize,
+			animationPromise: animationPromise ?? Promise.resolve(),
+		}
 		this.onSpinComplete(spinResult)
+	}
+
+	private getPrizeInfoById(prizeId: Prize["id"]) {
+		const prize = this.prizes.find((prize) => prize.id === prizeId)
+		if (prize === undefined) {
+			return null
+		}
+
+		const prizeIndex = this.prizes.indexOf(prize)
+		if (prizeIndex === -1) {
+			return null
+		}
+
+		return {
+			prizeIndex,
+			prize,
+		}
 	}
 }

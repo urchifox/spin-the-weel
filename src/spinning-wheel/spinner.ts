@@ -1,10 +1,9 @@
 import { Renderer } from "./renderer"
-import { Prize, SpinResult } from "./types"
+import { Prize } from "./types"
 
 export class Spinner {
 	private readonly renderer: Renderer
 
-	private prizes: Array<Prize> = []
 	private spinAnimation?: Animation
 	private spinResult: {
 		prizeIndex: number
@@ -15,30 +14,15 @@ export class Spinner {
 		this.renderer = props.renderer
 	}
 
-	setProps(props: { prizes: Array<Prize> }) {
-		this.prizes = props.prizes
-	}
-
 	clear() {
-		this.prizes = []
 		this.spinAnimation?.cancel()
 		this.spinAnimation = undefined
 		this.spinResult = null
 	}
 
-	spin(prizeId: Prize["id"]): SpinResult | null {
+	spin({ prize, prizeIndex }: { prize: Prize; prizeIndex: number }) {
 		if (this.spinResult !== null) {
 			console.warn("SpinningWheel is already spinning")
-			return null
-		}
-
-		const prize = this.prizes.find((prize) => prize.id === prizeId)
-		if (prize === undefined) {
-			return null
-		}
-
-		const prizeIndex = this.prizes.indexOf(prize)
-		if (prizeIndex === -1) {
 			return null
 		}
 
@@ -47,10 +31,7 @@ export class Spinner {
 			prize,
 		}
 
-		return {
-			prize,
-			animationPromise: this.playSpin(),
-		}
+		return this.playSpin()
 	}
 
 	private async playSpin() {
