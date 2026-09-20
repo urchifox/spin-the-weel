@@ -5,8 +5,7 @@ import { Geometry } from "./geometry"
 export class Renderer {
 	private readonly geometry: Geometry
 	private root?: SpinningWheelMountProps["root"]
-	private prizes: Array<Prize> = []
-	private claimedPrizeId: string | null = null
+	private claimedPrize: Prize | null = null
 
 	private element?: HTMLElement
 
@@ -34,28 +33,25 @@ export class Renderer {
 
 	setProps(
 		props: SpinningWheelMountProps & {
-			prizes: Array<Prize>
-			claimedPrizeId: string | null
+			claimedPrize: Prize | null
 		}
 	) {
 		this.root = props.root
-		this.prizes = props.prizes
 		this.wheelColors = {
 			...this.defaultWheelColors,
 			...(props.wheelColors ?? {}),
 		}
-		this.claimedPrizeId = props.claimedPrizeId
+		this.claimedPrize = props.claimedPrize
 	}
 
 	clear() {
 		this.element?.remove()
 		this.element = undefined
-		this.prizes = []
-		this.claimedPrizeId = null
+		this.claimedPrize = null
 		this.finalAngle = 0
 	}
 
-	createElement(markup: string) {
+	createElement({ markup, prizes }: { markup: string; prizes: Array<Prize> }) {
 		const element = createElement(markup)
 		if (!isHtmlElement(element)) {
 			this.clear()
@@ -63,16 +59,16 @@ export class Renderer {
 		}
 
 		this.element = element
-		this.renderPrizes()
-		if (this.claimedPrizeId !== null) {
-			this.renderClaimedPrize(this.claimedPrizeId)
+		this.renderPrizes(prizes)
+		if (this.claimedPrize !== null) {
+			this.renderClaimedPrize(this.claimedPrize)
 		}
 		this.fitWheelIntoRoot()
 
 		return element
 	}
 
-	private renderPrizes() {
+	private renderPrizes(prizes: Array<Prize>) {
 		if (this.element === undefined) {
 			return
 		}
@@ -84,7 +80,7 @@ export class Renderer {
 		}
 
 		let prizesCount = 0
-		this.prizes.forEach((prize) => {
+		prizes.forEach((prize) => {
 			const prizeElement = this.createPrizeElement(prize, prizesCount)
 			if (prizeElement === null) {
 				return
@@ -96,12 +92,7 @@ export class Renderer {
 		this.setWheelCSSProperties()
 	}
 
-	renderClaimedPrize(prizeId: Prize["id"]) {
-		const prize = this.prizes.find((prize) => prize.id === prizeId)
-		if (prize === undefined) {
-			return
-		}
-
+	renderClaimedPrize(prize: Prize) {
 		const resultElement = this.element?.querySelector(`.spinning-wheel__result`)
 		if (!isHtmlElement(resultElement)) {
 			return

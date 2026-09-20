@@ -54,8 +54,12 @@ export class SpinningWheel {
 
 		this.prizes = prizes
 		this.geometry.setProps({ segmentsCount: prizes.length })
-		this.renderer.setProps({ ...props, prizes, claimedPrizeId })
-		const element = this.renderer.createElement(markup)
+		const claimedPrize =
+			claimedPrizeId === null
+				? null
+				: (this.getPrizeInfoById(claimedPrizeId)?.prize ?? null)
+		this.renderer.setProps({ ...props, claimedPrize })
+		const element = this.renderer.createElement({ markup, prizes })
 		if (element === null) {
 			console.error("Failed to mount SpinningWheel")
 			this.isMounting = false
@@ -139,15 +143,16 @@ export class SpinningWheel {
 			return
 		}
 
-		if (wasSpun) {
-			console.log("SpinningWheel was already spun")
-			this.renderer.renderClaimedPrize(prizeId)
+		const prizeInfo = this.getPrizeInfoById(prizeId)
+		if (prizeInfo === null) {
+			console.error("Failed to get prize info by id", prizeId)
+			button.disabled = false
 			return
 		}
 
-		const prizeInfo = this.getPrizeInfoById(prizeId)
-		if (prizeInfo === null) {
-			button.disabled = false
+		if (wasSpun) {
+			console.log("SpinningWheel was already spun")
+			this.renderer.renderClaimedPrize(prizeInfo.prize)
 			return
 		}
 
