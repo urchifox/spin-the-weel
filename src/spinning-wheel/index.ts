@@ -1,5 +1,3 @@
-import markup from "./spinningWheel.html?raw"
-import "./styles/spinningWheel.css"
 import { UI } from "./ui"
 import { Prize, SpinningWheelMountProps, SpinningWheelProps } from "./types"
 import { Spinner } from "./spinner"
@@ -72,9 +70,9 @@ export class SpinningWheel {
 			claimedPrize,
 		})
 		const element = this.ui.createElement({
-			markup,
 			prizes,
 			root: props.root,
+			buttonText: props.buttonText,
 		})
 		if (element === null) {
 			console.error("Failed to mount SpinningWheel")

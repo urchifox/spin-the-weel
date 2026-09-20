@@ -16,3 +16,5 @@ export const defaultWheelSpinOptions = {
 	maxSpinMs: 7000,
 	pauseAfterSpinMs: 1000,
 } satisfies Readonly<Required<WheelSpinOptions>>
+
+export const defaultButtonText = "Spin!"

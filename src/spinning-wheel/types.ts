@@ -27,6 +27,7 @@ export type SpinningWheelMountProps = {
 	root: HTMLElement
 	wheelColors?: WheelColors
 	wheelSpinOptions?: WheelSpinOptions
+	buttonText?: string
 }
 
 export type Prize = {

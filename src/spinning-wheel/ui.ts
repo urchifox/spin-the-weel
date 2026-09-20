@@ -1,7 +1,10 @@
+import markup from "./spinningWheel.html?raw"
+import "./styles/spinningWheel.css"
+
 import { createElement, isHtmlElement } from "./helpers"
 import { Prize, WheelColors } from "./types"
 import { Geometry } from "./geometry"
-import { defaultWheelColors } from "./defaults"
+import { defaultButtonText, defaultWheelColors } from "./defaults"
 import { Animator } from "./animator"
 
 export class UI {
@@ -34,13 +37,13 @@ export class UI {
 	}
 
 	createElement({
-		markup,
 		prizes,
 		root,
+		buttonText,
 	}: {
-		markup: string
 		prizes: Array<Prize>
 		root: HTMLElement
+		buttonText?: string
 	}) {
 		const element = createElement(markup)
 		if (!isHtmlElement(element)) {
@@ -49,6 +52,10 @@ export class UI {
 		}
 
 		this.element = element
+		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
+		if (button !== null) {
+			button.textContent = buttonText ?? defaultButtonText
+		}
 		root.appendChild(element)
 		this.renderPrizes(prizes)
 		this.setWheelCSSProperties()
