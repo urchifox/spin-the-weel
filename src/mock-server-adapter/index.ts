@@ -41,7 +41,7 @@ export class MockServerAdapter implements Authorizer {
 		const wasSpun = claimedPrizeId !== null
 
 		const prizeId =
-			claimedPrizeId ?? prizes[Math.floor(Math.random() * prizes.length)].id
+			claimedPrizeId ?? prizes[Math.floor(Math.random() * prizes.length)]?.id
 		if (prizeId === undefined) {
 			return Promise.resolve({
 				status: "error" as const,
