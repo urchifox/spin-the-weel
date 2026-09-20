@@ -1,17 +1,21 @@
-import markup from "./spinningWheel.html?raw"
-import "./styles/spinningWheel.css"
-import { Renderer } from "./renderer"
+import { UI } from "./ui"
 import { Prize, SpinningWheelMountProps, SpinningWheelProps } from "./types"
 import { Spinner } from "./spinner"
-import { isHtmlElement } from "./helpers"
+import { Geometry } from "./geometry"
+import { Animator } from "./animator"
 
 export class SpinningWheel {
 	private readonly id: SpinningWheelProps["id"]
 	private readonly authorizer: SpinningWheelProps["authorizer"]
 	private readonly onSpinComplete: SpinningWheelProps["onSpinComplete"]
+	private root: SpinningWheelMountProps["root"] | null = null
 
-	private readonly renderer = new Renderer()
-	private readonly spinner = new Spinner()
+	private readonly geometry: Geometry
+	private readonly animator: Animator
+	private readonly ui: UI
+	private readonly spinner: Spinner
+
+	private prizes: Array<Prize> = []
 	private resizeTimerId: number | null = null
 	private resizeObserver?: ResizeObserver
 	private abortController?: AbortController
@@ -22,6 +26,16 @@ export class SpinningWheel {
 		this.id = props.id
 		this.authorizer = props.authorizer
 		this.onSpinComplete = props.onSpinComplete
+
+		this.geometry = new Geometry()
+		this.animator = new Animator(this.geometry)
+		this.ui = new UI({
+			geometry: this.geometry,
+			animator: this.animator,
+		})
+		this.spinner = new Spinner({
+			ui: this.ui,
+		})
 	}
 
 	async mount(props: SpinningWheelMountProps) {
@@ -46,24 +60,38 @@ export class SpinningWheel {
 			return false
 		}
 
-		this.renderer.setProps({ ...props, prizes, claimedPrizeId })
-		const element = this.renderer.createElement(markup)
+		this.root = props.root
+		this.prizes = prizes
+		this.geometry.setProps({ segmentsCount: prizes.length })
+		const claimedPrize =
+			claimedPrizeId === null
+				? null
+				: (this.getPrizeInfoById(claimedPrizeId)?.prize ?? null)
+		this.animator.setProps({
+			wheelSpinOptions: props.wheelSpinOptions,
+		})
+		this.ui.setProps({
+			wheelColors: props.wheelColors,
+			claimedPrize,
+		})
+		const element = this.ui.createElement({
+			prizes,
+			root: props.root,
+			buttonText: props.buttonText,
+		})
 		if (element === null) {
 			console.error("Failed to mount SpinningWheel")
 			this.isMounting = false
 			return false
 		}
 
-		const root = props.root
-		root.appendChild(element)
-		this.spinner.setProps({ prizes, element })
 		this.abortController = new AbortController()
 		this.resizeObserver = new ResizeObserver(() =>
 			requestAnimationFrame(() => {
 				this.onResize()
 			})
 		)
-		this.resizeObserver?.observe(root)
+		this.resizeObserver?.observe(props.root)
 		this.setListeners()
 		this.isMounting = false
 		this.isMounted = true
@@ -76,7 +104,9 @@ export class SpinningWheel {
 			return false
 		}
 
-		this.renderer.clear()
+		this.geometry.clear()
+		this.animator.clear()
+		this.ui.clear()
 		this.spinner.clear()
 		if (this.resizeTimerId !== null) {
 			clearTimeout(this.resizeTimerId)
@@ -91,10 +121,10 @@ export class SpinningWheel {
 	}
 
 	private setListeners() {
-		const button = this.renderer.getElement(".spinning-wheel__button")
-		button?.addEventListener("click", () => this.onButtonClick(), {
-			signal: this.abortController?.signal,
-		})
+		this.ui.setButtonClickHandler(
+			() => this.onButtonClick(),
+			this.abortController?.signal
+		)
 	}
 
 	private onResize() {
@@ -103,18 +133,12 @@ export class SpinningWheel {
 		}
 
 		this.resizeTimerId = setTimeout(() => {
-			this.renderer.fitWheelIntoRoot()
+			this.ui.fitWheelIntoRoot(this.root ?? document.body)
 		}, 100)
 	}
 
 	private async onButtonClick() {
-		const button = this.renderer.getElement<HTMLButtonElement>(
-			".spinning-wheel__button"
-		)
-		if (!isHtmlElement(button)) {
-			return
-		}
-		button.disabled = true
+		this.ui.toggleButtonDisabled(true)
 
 		let prizeId: Prize["id"] | null = null
 		let wasSpun = false
@@ -127,21 +151,50 @@ export class SpinningWheel {
 			wasSpun = response.wasSpun
 		} catch (error) {
 			console.error("Failed to request spin with error", error)
-			button.disabled = false
+			this.ui.toggleButtonDisabled(false)
+			return
+		}
+
+		const prizeInfo = this.getPrizeInfoById(prizeId)
+		if (prizeInfo === null) {
+			console.error("Failed to get prize info by id", prizeId)
+			this.ui.toggleButtonDisabled(false)
 			return
 		}
 
 		if (wasSpun) {
 			console.log("SpinningWheel was already spun")
-			this.renderer.renderClaimedPrize(prizeId)
+			this.ui.renderClaimedPrize(prizeInfo.prize)
 			return
 		}
 
-		const spinResult = this.spinner.spin(prizeId)
-		if (spinResult === null) {
-			button.disabled = false
+		const animationPromise = this.spinner.spin(prizeInfo)
+		if (animationPromise === null) {
+			console.warn("SpinningWheel is already spinning")
 			return
 		}
+
+		const spinResult = {
+			prize: prizeInfo.prize,
+			animationPromise: animationPromise,
+		}
 		this.onSpinComplete(spinResult)
+	}
+
+	private getPrizeInfoById(prizeId: Prize["id"]) {
+		const prize = this.prizes.find((prize) => prize.id === prizeId)
+		if (prize === undefined) {
+			return null
+		}
+
+		const prizeIndex = this.prizes.indexOf(prize)
+		if (prizeIndex === -1) {
+			return null
+		}
+
+		return {
+			prizeIndex,
+			prize,
+		}
 	}
 }
