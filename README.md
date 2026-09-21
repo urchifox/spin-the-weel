@@ -53,8 +53,6 @@ The component is split into a few collaborators, each owning one concern, with `
 - [Animator](./src/spinning-wheel/animator.ts) owns the motion. It builds the Web Animations keyframes for the spin and drives the reveal transition, taking the elements and rects it needs as arguments from `UI`. It also honours `prefers-reduced-motion`.
 - [Spinner](./src/spinning-wheel/spinner.ts) owns the spin lifecycle: it guards against a second spin while one is running, awaits the animation, handles cancellation on unmount, and then triggers the reveal.
 
-
-
 ## Structure
 
 ```text
@@ -80,19 +78,14 @@ The component is split into a few collaborators, each owning one concern, with `
     └── styles/                 # Global styles for the demo page only
 ```
 
-
-
 ## How to run
 
 ```bash
 npm install
 ```
 
-
 | Script            | What it does                                                              |
 | ----------------- | ------------------------------------------------------------------------- |
 | `npm run serve`   | Dev server on [http://localhost:5173](http://localhost:5173)              |
 | `npm run build`   | Production build into `dist`                                              |
 | `npm run preview` | Serves the built `dist` on [http://localhost:4173](http://localhost:4173) |
-
-
