@@ -68,7 +68,7 @@ export class SpinningWheel {
 				? null
 				: (this.getPrizeInfoById(claimedPrizeId)?.prize ?? null)
 		this.animator.setProps({
-			wheelSpinOptions: props.wheelSpinOptions,
+			spinOptions: props.spinOptions,
 		})
 		this.ui.setProps({
 			segmentsColors: props.segmentsColors,

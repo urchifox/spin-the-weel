@@ -1,4 +1,4 @@
-import { SegmentsColors, WheelSpinOptions } from "./types"
+import { SegmentsColors, SpinOptions } from "./types"
 
 export const defaultSegmentsColors = {
 	hueStart: 0,
@@ -8,7 +8,7 @@ export const defaultSegmentsColors = {
 	colorsRepeat: 1,
 } satisfies Readonly<Required<SegmentsColors>>
 
-export const defaultWheelSpinOptions = {
+export const defaultSpinOptions = {
 	windupDeg: -33,
 	windupMs: 500,
 	minTurns: 3,
@@ -16,6 +16,6 @@ export const defaultWheelSpinOptions = {
 	minSpinMs: 5000,
 	maxSpinMs: 7000,
 	pauseAfterSpinMs: 1000,
-} satisfies Readonly<Required<WheelSpinOptions>>
+} satisfies Readonly<Required<SpinOptions>>
 
 export const defaultButtonText = "Spin!"

@@ -10,7 +10,7 @@ Create a new instance of the [SpinningWheel](./src/spinning-wheel/index.ts) clas
 
 Note that the root element for the component should have a fixed size (the wheel will be fitted into it).
 
-Two optional mount props tune the look and the feel: `segmentsColors` controls the hue range, saturation, and lightness of the sectors, and `wheelSpinOptions` controls the windup, the number of turns, the spin duration, and the pause before the prize is revealed. Anything left out falls back to [defaults.ts](./src/spinning-wheel/defaults.ts).
+Two optional mount props tune the look and the feel: `segmentsColors` controls the hue range, saturation, and lightness of the sectors, and `spinOptions` controls the windup, the number of turns, the spin duration, and the pause before the prize is revealed. Anything left out falls back to [defaults.ts](./src/spinning-wheel/defaults.ts).
 
 ## Single spin restriction
 

@@ -26,7 +26,7 @@ export type Authorizer = {
 export type SpinningWheelMountProps = {
 	root: HTMLElement
 	segmentsColors?: SegmentsColors
-	wheelSpinOptions?: WheelSpinOptions
+	spinOptions?: SpinOptions
 	buttonText?: string
 }
 
@@ -44,7 +44,7 @@ export type SegmentsColors = {
 	colorsRepeat?: number
 }
 
-export type WheelSpinOptions = {
+export type SpinOptions = {
 	windupDeg?: number
 	windupMs?: number
 	minTurns?: number

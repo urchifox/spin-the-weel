@@ -1,11 +1,11 @@
-import { defaultWheelSpinOptions } from "./defaults"
+import { defaultSpinOptions } from "./defaults"
 import { Geometry } from "./geometry"
 import { getRandomInteger, wait } from "./helpers"
-import { Prize, WheelSpinOptions } from "./types"
+import { Prize, SpinOptions } from "./types"
 
 export class Animator {
 	private readonly geometry: Geometry
-	private wheelSpinOptions: Required<WheelSpinOptions> = defaultWheelSpinOptions
+	private spinOptions: Required<SpinOptions> = defaultSpinOptions
 
 	private finalAngle = 0
 
@@ -13,15 +13,15 @@ export class Animator {
 		this.geometry = geometry
 	}
 
-	setProps(props: { wheelSpinOptions?: WheelSpinOptions }) {
-		this.wheelSpinOptions = {
-			...defaultWheelSpinOptions,
-			...(props.wheelSpinOptions ?? {}),
+	setProps(props: { spinOptions?: SpinOptions }) {
+		this.spinOptions = {
+			...defaultSpinOptions,
+			...(props.spinOptions ?? {}),
 		}
 	}
 
 	clear() {
-		this.wheelSpinOptions = defaultWheelSpinOptions
+		this.spinOptions = defaultSpinOptions
 		this.finalAngle = 0
 	}
 
@@ -34,7 +34,7 @@ export class Animator {
 	}) {
 		this.finalAngle = this.geometry.getRandomAngleForSegmentIndex(prizeIndex)
 		const { minTurns, maxTurns, minSpinMs, maxSpinMs, windupMs, windupDeg } =
-			this.wheelSpinOptions
+			this.spinOptions
 		const turns = getRandomInteger({ min: minTurns, max: maxTurns })
 		const endDeg = turns * 360 + this.finalAngle
 		const spinMs = getRandomInteger({
@@ -79,7 +79,7 @@ export class Animator {
 			return
 		}
 
-		await wait(this.wheelSpinOptions.pauseAfterSpinMs)
+		await wait(this.spinOptions.pauseAfterSpinMs)
 
 		// Layout size (not AABB) so rotation does not inflate the scale
 		const scale = prizeElement.offsetWidth / resultSize
