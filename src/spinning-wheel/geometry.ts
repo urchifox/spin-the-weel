@@ -42,17 +42,24 @@ export class Geometry {
 		}
 	}
 
-	getGradientInfo({ hueStart, hueEnd }: { hueStart: number; hueEnd: number }) {
+	getGradientInfo({
+		hueStart,
+		hueEnd,
+		colorsRepeat,
+	}: {
+		hueStart: number
+		hueEnd: number
+		colorsRepeat: number
+	}) {
 		const hueRange = hueEnd - hueStart
 		const gradientSteps: Array<{
 			hue: number
 			startAngle: number
 			endAngle: number
 		}> = []
-		const cyclesRepeat = this.segmentsCount <= 2 ? 1 : 2
 
 		for (let i = 0; i < this.segmentsCount; i++) {
-			const cyclePos = ((i * cyclesRepeat) / this.segmentsCount) % 1
+			const cyclePos = ((i * colorsRepeat) / this.segmentsCount) % 1
 			const hue = hueStart + cyclePos * hueRange
 			gradientSteps.push({
 				hue,

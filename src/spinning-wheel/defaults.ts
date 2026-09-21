@@ -5,6 +5,7 @@ export const defaultWheelColors = {
 	hueEnd: 360,
 	saturation: 100,
 	lightness: 50,
+	colorsRepeat: 1,
 } satisfies Readonly<Required<WheelColors>>
 
 export const defaultWheelSpinOptions = {

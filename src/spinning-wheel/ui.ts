@@ -143,10 +143,12 @@ export class UI {
 	}
 
 	private getGradient() {
-		const { hueStart, hueEnd, saturation, lightness } = this.wheelColors
+		const { hueStart, hueEnd, saturation, lightness, colorsRepeat } =
+			this.wheelColors
 		const { startAngle, gradientSteps } = this.geometry.getGradientInfo({
 			hueStart,
 			hueEnd,
+			colorsRepeat,
 		})
 		const colorStops = gradientSteps.map(({ hue, startAngle, endAngle }) => {
 			const color = `hsl(${hue}deg ${saturation}% ${lightness}%)`

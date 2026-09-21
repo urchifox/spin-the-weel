@@ -41,6 +41,7 @@ export type WheelColors = {
 	hueEnd?: number
 	saturation?: number
 	lightness?: number
+	colorsRepeat?: number
 }
 
 export type WheelSpinOptions = {
