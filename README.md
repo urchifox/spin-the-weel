@@ -1,4 +1,4 @@
-# Spin the Weel
+# Spin the Wheel
 
 "Spin the Wheel" is a responsive promotional component that can be embedded into a gaming or casino website. It is independent of its surroundings and can be placed anywhere — this page is just a demo.
 
