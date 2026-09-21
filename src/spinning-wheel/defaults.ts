@@ -31,4 +31,14 @@ export const defaultSpinOptions = {
 	pauseAfterSpinMs: 1000,
 } satisfies Readonly<Required<SpinOptions>>
 
+export const reducedMotionSpinOptions = {
+	windupDeg: 0,
+	windupMs: 0,
+	minTurns: 0,
+	maxTurns: 0,
+	minSpinMs: 400,
+	maxSpinMs: 400,
+	pauseAfterSpinMs: 0,
+} satisfies Readonly<Required<SpinOptions>>
+
 export const defaultButtonText = "Spin!"

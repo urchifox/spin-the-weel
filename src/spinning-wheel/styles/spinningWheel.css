@@ -308,3 +308,18 @@
 	cursor: default;
 	pointer-events: none;
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.spinning-wheell,
+	.spinning-wheel *,
+	.spinning-wheel *::before,
+	.spinning-wheel *::after {
+		transition: none;
+	}
+
+	.spinning-wheel__button:hover,
+	.spinning-wheel__button:active,
+	.spinning-wheel__button:disabled {
+		transform: none;
+	}
+}
