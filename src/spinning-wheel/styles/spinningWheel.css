@@ -1,19 +1,6 @@
 .spinning-wheel {
 	--root-size: 0px; /* fallback */
 	--wheel-size: 0px; /* fallback */
-	--wheel-gradient: conic-gradient(
-		red,
-		orange,
-		yellow,
-		green,
-		blue,
-		violet,
-		red
-	); /* fallback */
-
-	--inset-shadow-color: rgb(240 120 2);
-	--main-color: #fcd81e;
-	--drop-shadow-color: rgb(0 0 0 / 20%);
 
 	position: relative;
 	display: grid;
@@ -193,7 +180,7 @@
 
 	width: clamp(2em, calc(var(--wheel-size) / 10), 10em);
 
-	background-image: url("../images/pointer.png");
+	background-image: var(--pointer-image);
 	background-position: center top;
 	background-size: contain;
 	background-repeat: no-repeat;
@@ -213,11 +200,11 @@
 	border-radius: 0.5em;
 
 	background-color: var(--main-color);
-	color: #fff;
+	color: var(--text-color);
 	text-align: center;
 	text-decoration: none;
 	text-transform: none;
-	text-shadow: 0 0 0.2em #630a03;
+	text-shadow: 0 0 0.2em var(--text-shadow-color);
 	letter-spacing: normal;
 	line-height: 1.25;
 	font-weight: 900;

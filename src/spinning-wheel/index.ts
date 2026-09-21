@@ -70,14 +70,14 @@ export class SpinningWheel {
 		this.animator.setProps({
 			spinOptions: props.spinOptions,
 		})
-		this.ui.setProps({
-			segmentsColors: props.segmentsColors,
-			claimedPrize,
-		})
 		const element = this.ui.createElement({
-			prizes,
 			root: props.root,
+			prizes,
+			claimedPrize,
 			buttonText: props.buttonText,
+			segmentsColors: props.segmentsColors,
+			wheelColors: props.wheelColors,
+			pointerImage: props.pointerImage,
 		})
 		if (element === null) {
 			console.error("Failed to mount SpinningWheel")

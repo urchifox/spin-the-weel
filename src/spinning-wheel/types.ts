@@ -25,6 +25,8 @@ export type Authorizer = {
 
 export type SpinningWheelMountProps = {
 	root: HTMLElement
+	pointerImage?: string
+	wheelColors?: WheelColors
 	segmentsColors?: SegmentsColors
 	spinOptions?: SpinOptions
 	buttonText?: string
@@ -34,6 +36,14 @@ export type Prize = {
 	id: string
 	name: string
 	image: string
+}
+
+export type WheelColors = {
+	mainColor?: string
+	textColor?: string
+	textShadowColor?: string
+	dropShadowColor?: string
+	insetShadowColor?: string
 }
 
 export type SegmentsColors = {

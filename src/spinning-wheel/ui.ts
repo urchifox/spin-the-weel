@@ -2,9 +2,14 @@ import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
 
 import { createElement, isHtmlElement } from "./helpers"
-import { Prize, SegmentsColors } from "./types"
+import { Prize, SegmentsColors, WheelColors } from "./types"
 import { Geometry } from "./geometry"
-import { defaultButtonText, defaultSegmentsColors } from "./defaults"
+import {
+	defaultButtonText,
+	defaultPointerImage,
+	defaultSegmentsColors,
+	defaultWheelColors,
+} from "./defaults"
 import { Animator } from "./animator"
 
 export class UI {
@@ -12,8 +17,9 @@ export class UI {
 	private readonly animator: Animator
 
 	private claimedPrize: Prize | null = null
-	private segmentsColors: Required<SegmentsColors> = defaultSegmentsColors
-
+	private segmentsColors: ResolvedSegmentsColors = defaultSegmentsColors
+	private wheelColors: Required<WheelColors> = defaultWheelColors
+	private pointerImage: string = defaultPointerImage
 	private element?: HTMLElement
 
 	constructor(props: { geometry: Geometry; animator: Animator }) {
@@ -21,32 +27,23 @@ export class UI {
 		this.animator = props.animator
 	}
 
-	setProps(props: {
-		claimedPrize: Prize | null
-		segmentsColors?: SegmentsColors
-	}) {
-		this.segmentsColors = {
-			...defaultSegmentsColors,
-			...(props.segmentsColors ?? {}),
-		}
-		this.claimedPrize = props.claimedPrize
-	}
-
 	clear() {
 		this.element?.remove()
 		this.element = undefined
-		this.segmentsColors = defaultSegmentsColors
 		this.claimedPrize = null
+		this.pointerImage = defaultPointerImage
+		this.wheelColors = defaultWheelColors
+		this.segmentsColors = defaultSegmentsColors
 	}
 
-	createElement({
-		prizes,
-		root,
-		buttonText,
-	}: {
-		prizes: Array<Prize>
+	createElement(props: {
 		root: HTMLElement
+		prizes: Array<Prize>
+		claimedPrize: Prize | null
 		buttonText?: string
+		pointerImage?: string
+		wheelColors?: WheelColors
+		segmentsColors?: SegmentsColors
 	}) {
 		const element = createElement(markup)
 		if (!isHtmlElement(element)) {
@@ -55,20 +52,30 @@ export class UI {
 		}
 
 		this.element = element
-		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
-		if (button !== null) {
-			button.textContent = buttonText ?? defaultButtonText
-		}
-		root.appendChild(element)
-		this.renderPrizes(prizes)
-		this.setWheelCSSProperties()
+		this.claimedPrize = props.claimedPrize
+		this.pointerImage = props.pointerImage ?? defaultPointerImage
+		this.wheelColors = { ...defaultWheelColors, ...props.wheelColors }
+		this.segmentsColors = resolveSegmentsColors(props.segmentsColors)
 
+		props.root.appendChild(element)
+		this.renderButton(props.buttonText)
+		this.renderPrizes(props.prizes)
+		this.setWheelCSSProperties()
 		if (this.claimedPrize !== null) {
 			this.renderClaimedPrize(this.claimedPrize)
 		}
-		this.fitWheelIntoRoot(root)
+		this.fitWheelIntoRoot(props.root)
 
 		return element
+	}
+
+	private renderButton(buttonText?: string) {
+		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
+		if (button === null) {
+			return
+		}
+
+		button.textContent = buttonText ?? defaultButtonText
 	}
 
 	private renderPrizes(prizes: Array<Prize>) {
@@ -138,6 +145,12 @@ export class UI {
 			"--x-offset": `${xOffset}%`,
 			"--y-offset": `${yOffset}%`,
 			"--wheel-gradient": gradient,
+			"--main-color": this.wheelColors.mainColor,
+			"--text-color": this.wheelColors.textColor,
+			"--text-shadow-color": this.wheelColors.textShadowColor,
+			"--inset-shadow-color": this.wheelColors.insetShadowColor,
+			"--drop-shadow-color": this.wheelColors.dropShadowColor,
+			"--pointer-image": `url("${CSS.escape(this.pointerImage)}")`,
 		}
 
 		for (const [key, value] of Object.entries(wheelProperties)) {

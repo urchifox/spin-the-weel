@@ -12,7 +12,7 @@ const mockOnSpinComplete = (spinResult: SpinResult) => {
 	})
 }
 const mockSegmentsColors = {
-	hueStart: 210,
+	hueStart: 200,
 	hueEnd: 300,
 	saturation: 85,
 	lightness: 60,
