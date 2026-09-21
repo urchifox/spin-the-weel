@@ -1,12 +1,12 @@
-import { WheelColors, WheelSpinOptions } from "./types"
+import { SegmentsColors, WheelSpinOptions } from "./types"
 
-export const defaultWheelColors = {
+export const defaultSegmentsColors = {
 	hueStart: 0,
 	hueEnd: 360,
 	saturation: 100,
 	lightness: 50,
 	colorsRepeat: 1,
-} satisfies Readonly<Required<WheelColors>>
+} satisfies Readonly<Required<SegmentsColors>>
 
 export const defaultWheelSpinOptions = {
 	windupDeg: -33,

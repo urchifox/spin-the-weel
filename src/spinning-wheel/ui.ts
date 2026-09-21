@@ -2,9 +2,9 @@ import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
 
 import { createElement, isHtmlElement } from "./helpers"
-import { Prize, WheelColors } from "./types"
+import { Prize, SegmentsColors } from "./types"
 import { Geometry } from "./geometry"
-import { defaultButtonText, defaultWheelColors } from "./defaults"
+import { defaultButtonText, defaultSegmentsColors } from "./defaults"
 import { Animator } from "./animator"
 
 export class UI {
@@ -12,7 +12,7 @@ export class UI {
 	private readonly animator: Animator
 
 	private claimedPrize: Prize | null = null
-	private wheelColors: Required<WheelColors> = defaultWheelColors
+	private segmentsColors: Required<SegmentsColors> = defaultSegmentsColors
 
 	private element?: HTMLElement
 
@@ -21,10 +21,13 @@ export class UI {
 		this.animator = props.animator
 	}
 
-	setProps(props: { claimedPrize: Prize | null; wheelColors?: WheelColors }) {
-		this.wheelColors = {
-			...defaultWheelColors,
-			...(props.wheelColors ?? {}),
+	setProps(props: {
+		claimedPrize: Prize | null
+		segmentsColors?: SegmentsColors
+	}) {
+		this.segmentsColors = {
+			...defaultSegmentsColors,
+			...(props.segmentsColors ?? {}),
 		}
 		this.claimedPrize = props.claimedPrize
 	}
@@ -32,7 +35,7 @@ export class UI {
 	clear() {
 		this.element?.remove()
 		this.element = undefined
-		this.wheelColors = defaultWheelColors
+		this.segmentsColors = defaultSegmentsColors
 		this.claimedPrize = null
 	}
 
@@ -144,7 +147,7 @@ export class UI {
 
 	private getGradient() {
 		const { hueStart, hueEnd, saturation, lightness, colorsRepeat } =
-			this.wheelColors
+			this.segmentsColors
 		const { startAngle, gradientSteps } = this.geometry.getGradientInfo({
 			hueStart,
 			hueEnd,

@@ -71,7 +71,7 @@ export class SpinningWheel {
 			wheelSpinOptions: props.wheelSpinOptions,
 		})
 		this.ui.setProps({
-			wheelColors: props.wheelColors,
+			segmentsColors: props.segmentsColors,
 			claimedPrize,
 		})
 		const element = this.ui.createElement({

@@ -11,7 +11,7 @@ const mockOnSpinComplete = (spinResult: SpinResult) => {
 		console.log("Animation complete")
 	})
 }
-const mockWheelColors = {
+const mockSegmentsColors = {
 	hueStart: 210,
 	hueEnd: 300,
 	saturation: 85,
@@ -25,5 +25,5 @@ if (root !== null && root instanceof HTMLElement) {
 		authorizer: mockServer,
 		onSpinComplete: mockOnSpinComplete,
 	})
-	spinningWheel.mount({ root, wheelColors: mockWheelColors })
+	spinningWheel.mount({ root, segmentsColors: mockSegmentsColors })
 }
