@@ -188,6 +188,12 @@
 	font-size: calc(var(--result-size) * var(--result-label-font-ratio, 0.1));
 	font-family: "Arial", sans-serif;
 	font-style: normal;
+	transition: opacity 0.3s 0.5s ease;
+	opacity: 0;
+}
+
+.spinning-wheel__result--revealed .spinning-wheel__result-label {
+	opacity: 1;
 }
 
 .spinning-wheel__result-label:empty {
