@@ -46,13 +46,22 @@ export type WheelColors = {
 	insetShadowColor?: string
 }
 
-export type SegmentsColors = {
+export type SegmentsColors = PredefinedSegmentsColors | GeneratedSegmentsColors
+
+export type PredefinedSegmentsColors = {
+	colors: Array<string>
+}
+
+export type GeneratedSegmentsColors = {
 	hueStart?: number
 	hueEnd?: number
 	saturation?: number
 	lightness?: number
 	colorsRepeat?: number
 }
+
+export type ResolvedSegmentsColors =
+	PredefinedSegmentsColors | Required<GeneratedSegmentsColors>
 
 export type SpinOptions = {
 	windupDeg?: number

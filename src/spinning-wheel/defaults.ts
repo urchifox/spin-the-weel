@@ -1,5 +1,4 @@
-import { SegmentsColors, SpinOptions, WheelColors } from "./types"
-import defaultPointerImage from "./images/pointer.png"
+import { GeneratedSegmentsColors, SpinOptions, WheelColors } from "./types"
 
 export { default as defaultPointerImage } from "./images/pointer.png"
 
@@ -17,7 +16,7 @@ export const defaultSegmentsColors = {
 	saturation: 100,
 	lightness: 50,
 	colorsRepeat: 1,
-} satisfies Readonly<Required<SegmentsColors>>
+} satisfies Readonly<Required<GeneratedSegmentsColors>>
 
 export const defaultSpinOptions = {
 	windupDeg: -33,

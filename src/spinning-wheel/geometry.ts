@@ -42,37 +42,18 @@ export class Geometry {
 		}
 	}
 
-	getGradientInfo({
-		hueStart,
-		hueEnd,
-		colorsRepeat,
-	}: {
-		hueStart: number
-		hueEnd: number
-		colorsRepeat: number
-	}) {
-		const hueRange = hueEnd - hueStart
-		const gradientSteps: Array<{
-			hue: number
-			startAngle: number
-			endAngle: number
-		}> = []
+	getSegmentsAngles() {
+		const segments = Array.from({ length: this.segmentsCount }, (_, index) => ({
+			startAngle: index * this.sectorAngle,
+			endAngle: (index + 1) * this.sectorAngle,
+		}))
 
-		for (let i = 0; i < this.segmentsCount; i++) {
-			const cyclePos = ((i * colorsRepeat) / this.segmentsCount) % 1
-			const hue = hueStart + cyclePos * hueRange
-			gradientSteps.push({
-				hue,
-				startAngle: i * this.sectorAngle,
-				endAngle: (i + 1) * this.sectorAngle,
-			})
-		}
-
+		// Offset so the first segment is centred under the pointer
 		const startAngle = this.halfSectorAngle
 
 		return {
 			startAngle,
-			gradientSteps,
+			segments,
 		}
 	}
 

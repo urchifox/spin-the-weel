@@ -1,6 +1,6 @@
 import { MockServerAdapter } from "./mock-server-adapter"
 import { SpinningWheel } from "./spinning-wheel"
-import { SpinResult } from "./spinning-wheel/types"
+import { PredefinedSegmentsColors, SpinResult } from "./spinning-wheel/types"
 import "./styles/index.css"
 
 const root = document.querySelector("#app")
@@ -12,11 +12,14 @@ const mockOnSpinComplete = (spinResult: SpinResult) => {
 	})
 }
 const mockSegmentsColors = {
-	hueStart: 200,
-	hueEnd: 300,
-	saturation: 85,
-	lightness: 60,
-}
+	colors: [
+		"rgb(82 155 255)",
+		"rgb(151 80 246)",
+		"rgb(80 111 239)",
+		"rgb(189 104 250)",
+	],
+} satisfies PredefinedSegmentsColors
+
 const mockWheelId = "demo-wheel"
 
 if (root !== null && root instanceof HTMLElement) {

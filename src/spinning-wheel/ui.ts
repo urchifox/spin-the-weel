@@ -2,7 +2,12 @@ import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
 
 import { createElement, isHtmlElement } from "./helpers"
-import { Prize, SegmentsColors, WheelColors } from "./types"
+import {
+	Prize,
+	ResolvedSegmentsColors,
+	SegmentsColors,
+	WheelColors,
+} from "./types"
 import { Geometry } from "./geometry"
 import {
 	defaultButtonText,
@@ -159,20 +164,33 @@ export class UI {
 	}
 
 	private getGradient() {
+		const { startAngle, segments } = this.geometry.getSegmentsAngles()
+		const colors = this.getSegmentsColors(segments.length)
+		const colorStops = segments.map(
+			(segment, index) =>
+				`${colors[index]} ${segment.startAngle}deg ${segment.endAngle}deg`
+		)
+
+		return `conic-gradient(from ${startAngle}deg, ${colorStops.join(", ")})`
+	}
+
+	private getSegmentsColors(segmentsCount: number) {
+		const segmentsColors = this.segmentsColors
+		if ("colors" in segmentsColors) {
+			const { colors } = segmentsColors
+			return Array.from(
+				{ length: segmentsCount },
+				(_, index) => colors[index % colors.length]
+			)
+		}
+
 		const { hueStart, hueEnd, saturation, lightness, colorsRepeat } =
-			this.segmentsColors
-		const { startAngle, gradientSteps } = this.geometry.getGradientInfo({
-			hueStart,
-			hueEnd,
-			colorsRepeat,
+			segmentsColors
+		return Array.from({ length: segmentsCount }, (_, index) => {
+			const cyclePosition = ((index * colorsRepeat) / segmentsCount) % 1
+			const hue = hueStart + cyclePosition * (hueEnd - hueStart)
+			return `hsl(${hue}deg ${saturation}% ${lightness}%)`
 		})
-		const colorStops = gradientSteps.map(({ hue, startAngle, endAngle }) => {
-			const color = `hsl(${hue}deg ${saturation}% ${lightness}%)`
-			const colorStop = `${color} ${startAngle}deg ${endAngle}deg`
-			return colorStop
-		})
-		const gradient = `conic-gradient(from ${startAngle}deg, ${colorStops.join(", ")})`
-		return gradient
 	}
 
 	renderClaimedPrize(prize: Prize) {
@@ -308,4 +326,16 @@ export class UI {
 
 		return (this.element.querySelector(selector) as T) ?? null
 	}
+}
+
+function resolveSegmentsColors(
+	segmentsColors?: SegmentsColors
+): ResolvedSegmentsColors {
+	if (segmentsColors !== undefined && "colors" in segmentsColors) {
+		return segmentsColors.colors.length > 0
+			? segmentsColors
+			: defaultSegmentsColors
+	}
+
+	return { ...defaultSegmentsColors, ...segmentsColors }
 }
