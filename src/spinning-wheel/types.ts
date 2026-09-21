@@ -25,25 +25,48 @@ export type Authorizer = {
 
 export type SpinningWheelMountProps = {
 	root: HTMLElement
+	pointerImage?: string
 	wheelColors?: WheelColors
-	wheelSpinOptions?: WheelSpinOptions
+	segmentsColors?: SegmentsColors
+	spinOptions?: SpinOptions
 	buttonText?: string
 }
 
 export type Prize = {
 	id: string
 	name: string
-	image: string
+	image?: string
 }
 
 export type WheelColors = {
+	mainColor?: string
+	buttonTextColor?: string
+	prizeTextColor?: string
+	prizeTextShadowColor?: string
+	resultTextColor?: string
+	insetShadowColor?: string
+	dropShadowColor?: string
+	prizeIconOpacity?: number
+}
+
+export type SegmentsColors = PredefinedSegmentsColors | GeneratedSegmentsColors
+
+export type PredefinedSegmentsColors = {
+	colors: Array<string>
+}
+
+export type GeneratedSegmentsColors = {
 	hueStart?: number
 	hueEnd?: number
 	saturation?: number
 	lightness?: number
+	colorsRepeat?: number
 }
 
-export type WheelSpinOptions = {
+export type ResolvedSegmentsColors =
+	PredefinedSegmentsColors | Required<GeneratedSegmentsColors>
+
+export type SpinOptions = {
 	windupDeg?: number
 	windupMs?: number
 	minTurns?: number

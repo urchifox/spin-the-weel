@@ -1,6 +1,8 @@
-# Spin the Weel
+# Spin the Wheel
 
 "Spin the Wheel" is a responsive promotional component that can be embedded into a gaming or casino website. It is independent of its surroundings and can be placed anywhere — this page is just a demo.
+
+Live demo: [https://urchifox.github.io/spin-the-wheel/](https://urchifox.github.io/spin-the-wheel/)
 
 Built with TypeScript, HTML, and CSS.
 
@@ -10,7 +12,20 @@ Create a new instance of the [SpinningWheel](./src/spinning-wheel/index.ts) clas
 
 Note that the root element for the component should have a fixed size (the wheel will be fitted into it).
 
-Two optional mount props tune the look and the feel: `wheelColors` controls the hue range, saturation, and lightness of the sectors, and `wheelSpinOptions` controls the windup, the number of turns, the spin duration, and the pause before the prize is revealed. Anything left out falls back to [defaults.ts](./src/spinning-wheel/defaults.ts).
+Optional mount props tune the look and the feel: `wheelColors` and `segmentsColors` recolour the chrome and the sectors, `pointerImage` swaps the pointer, and `spinOptions` controls the windup, the number of turns, the spin duration, and the pause before the prize is revealed. Anything left out falls back to [defaults.ts](./src/spinning-wheel/defaults.ts).
+
+When the user prefers reduced motion (`prefers-reduced-motion: reduce`), those spin options are ignored: the wheel skips the windup and extra turns, lands with a short rotation, and the prize reveal is instant.
+
+## Assumptions
+
+All visual decisions — layout, type, pointer, frame, default palette, and motion — were made by the author. The host can still recolour the component through `wheelColors` and `segmentsColors` (and swap the pointer with `pointerImage`); anything left unset uses the defaults above.
+
+## Limitations
+
+- **One spin per wheel.** The component is built for a single claim. After a successful spin the button stays disabled, and there is no API to reset or spin again. A second click is blocked in the UI and by the `Authorizer`.
+- **At least two prizes.** Geometry clamps the segment count to a minimum of two.
+- **The root must have a size.** The wheel is fitted into its host; an unsized root collapses it.
+- **The demo does not persist.** The mock authorizer keeps the claim in memory, so a reload starts over.
 
 ## Single spin restriction
 
@@ -29,15 +44,14 @@ Connecting to a backend is out of scope here, so the demo ships [MockServerAdapt
 
 ## Architecture
 
-The component is split into four collaborators, each owning one concern, with `SpinningWheel` as the only part that talks to the outside world.
+The component is split into a few collaborators, each owning one concern, with `SpinningWheel` as the only part that talks to the outside world.
 
 - [SpinningWheel](./src/spinning-wheel/index.ts) is the public API and the orchestrator. It calls the `Authorizer`, resolves a prize id into a prize and its index, wires up the click handler and the resize observer, and hands work to the others. It owns no DOM and no math.
-- [UI](./src/spinning-wheel/ui.ts) owns the DOM. It builds the markup, clones prize elements from the `<template>` in [spinningWheel.html](./src/spinning-wheel/spinningWheel.html), writes the CSS custom properties, fits the wheel into its root, and is the only place that queries elements. Nothing else holds an element reference.
-- [Geometry](./src/spinning-wheel/geometry.ts) owns the math and is pure: sector angles, icon sizing, conic-gradient stops, the random landing angle for a segment, the shortest rotation back to zero, and the offset between a prize and the wheel centre. It touches no DOM, so it can be reasoned about and tested on its own.
-- [Animator](./src/spinning-wheel/animator.ts) owns the motion. It builds the Web Animations keyframes for the spin and drives the reveal transition, taking the elements it needs as arguments from `UI`.
+- [UI](./src/spinning-wheel/ui.ts) owns the DOM. It builds the markup, clones prize elements from the `<template>` in [spinningWheel.html](./src/spinning-wheel/spinningWheel.html), writes the CSS custom properties (colors, pointer, label metrics), fits the wheel into its root, and is the only place that queries elements. Nothing else holds an element reference.
+- [Geometry](./src/spinning-wheel/geometry.ts) owns the math and is pure: sector angles, icon and label placement as percentages of the wheel, segment angles for the gradient, the random landing angle for a segment, the shortest rotation back to zero, and the offset between a prize and the wheel centre. It touches no DOM, so it can be reasoned about and tested on its own.
+- [LabelFitter](./src/spinning-wheel/labelFitter.ts) owns how prize names fit a sector and the result card. It measures text, picks a font size and line count, and returns layout metrics as ratios of the wheel. It does not hold element references.
+- [Animator](./src/spinning-wheel/animator.ts) owns the motion. It builds the Web Animations keyframes for the spin and drives the reveal transition, taking the elements and rects it needs as arguments from `UI`. It also honours `prefers-reduced-motion`.
 - [Spinner](./src/spinning-wheel/spinner.ts) owns the spin lifecycle: it guards against a second spin while one is running, awaits the animation, handles cancellation on unmount, and then triggers the reveal.
-
-The dependency direction is one-way. `SpinningWheel` → `Spinner` → `UI` → `Animator` → `Geometry`, and `Geometry` depends on nothing. Adding a new mount prop means touching `defaults.ts`, `types.ts`, and the one class that consumes it.
 
 ## Structure
 
@@ -51,13 +65,15 @@ The dependency direction is one-way. `SpinningWheel` → `Spinner` → `UI` → 
     ├── spinning-wheel/         # Self-contained wheel component
     │   ├── index.ts            # Public API and orchestration
     │   ├── ui.ts               # DOM creation, queries, CSS custom properties
-    │   ├── geometry.ts         # Pure angle, sizing, and gradient math
+    │   ├── geometry.ts         # Pure angle, sizing, and label-rect math
+    │   ├── labelFitter.ts      # Prize/result label font and line fitting
     │   ├── animator.ts         # Spin keyframes and prize reveal
     │   ├── spinner.ts          # Spin lifecycle and re-entry guard
-    │   ├── defaults.ts         # Fallback colors and spin options
+    │   ├── defaults.ts         # Fallback colors, pointer, and spin options
     │   ├── helpers.ts          # Small shared utilities
     │   ├── types.ts            # Public types
     │   ├── spinningWheel.html  # Markup and the prize template
+    │   ├── images/             # Default pointer
     │   └── styles/             # Component styles
     └── styles/                 # Global styles for the demo page only
 ```
@@ -68,8 +84,8 @@ The dependency direction is one-way. `SpinningWheel` → `Spinner` → `UI` → 
 npm install
 ```
 
-| Script            | What it does                                     |
-| ----------------- | ------------------------------------------------ |
-| `npm run serve`   | Dev server on http://localhost:5173              |
-| `npm run build`   | Production build into `dist`                     |
-| `npm run preview` | Serves the built `dist` on http://localhost:4173 |
+| Script            | What it does                                                              |
+| ----------------- | ------------------------------------------------------------------------- |
+| `npm run serve`   | Dev server on [http://localhost:5173](http://localhost:5173)              |
+| `npm run build`   | Production build into `dist`                                              |
+| `npm run preview` | Serves the built `dist` on [http://localhost:4173](http://localhost:4173) |

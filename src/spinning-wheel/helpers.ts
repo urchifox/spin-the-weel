@@ -18,3 +18,7 @@ export function wait(ms: number) {
 		setTimeout(resolve, ms)
 	})
 }
+
+export function isPreferReducedMotion() {
+	return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+}

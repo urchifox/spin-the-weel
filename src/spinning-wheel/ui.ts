@@ -2,48 +2,60 @@ import markup from "./spinningWheel.html?raw"
 import "./styles/spinningWheel.css"
 
 import { createElement, isHtmlElement } from "./helpers"
-import { Prize, WheelColors } from "./types"
+import {
+	Prize,
+	ResolvedSegmentsColors,
+	SegmentsColors,
+	WheelColors,
+} from "./types"
 import { Geometry } from "./geometry"
-import { defaultButtonText, defaultWheelColors } from "./defaults"
+import {
+	defaultButtonText,
+	defaultPointerImage,
+	defaultSegmentsColors,
+	defaultWheelColors,
+} from "./defaults"
 import { Animator } from "./animator"
+import { LabelFitter } from "./labelFitter"
 
 export class UI {
 	private readonly geometry: Geometry
 	private readonly animator: Animator
+	private readonly labelFitter: LabelFitter
 
 	private claimedPrize: Prize | null = null
+	private segmentsColors: ResolvedSegmentsColors = defaultSegmentsColors
 	private wheelColors: Required<WheelColors> = defaultWheelColors
-
+	private pointerImage: string = defaultPointerImage
 	private element?: HTMLElement
 
-	constructor(props: { geometry: Geometry; animator: Animator }) {
+	constructor(props: {
+		geometry: Geometry
+		animator: Animator
+		labelFitter: LabelFitter
+	}) {
 		this.geometry = props.geometry
 		this.animator = props.animator
-	}
-
-	setProps(props: { claimedPrize: Prize | null; wheelColors?: WheelColors }) {
-		this.wheelColors = {
-			...defaultWheelColors,
-			...(props.wheelColors ?? {}),
-		}
-		this.claimedPrize = props.claimedPrize
+		this.labelFitter = props.labelFitter
 	}
 
 	clear() {
 		this.element?.remove()
 		this.element = undefined
-		this.wheelColors = defaultWheelColors
 		this.claimedPrize = null
+		this.pointerImage = defaultPointerImage
+		this.wheelColors = defaultWheelColors
+		this.segmentsColors = defaultSegmentsColors
 	}
 
-	createElement({
-		prizes,
-		root,
-		buttonText,
-	}: {
-		prizes: Array<Prize>
+	createElement(props: {
 		root: HTMLElement
+		prizes: Array<Prize>
+		claimedPrize: Prize | null
 		buttonText?: string
+		pointerImage?: string
+		wheelColors?: WheelColors
+		segmentsColors?: SegmentsColors
 	}) {
 		const element = createElement(markup)
 		if (!isHtmlElement(element)) {
@@ -52,20 +64,31 @@ export class UI {
 		}
 
 		this.element = element
-		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
-		if (button !== null) {
-			button.textContent = buttonText ?? defaultButtonText
-		}
-		root.appendChild(element)
-		this.renderPrizes(prizes)
-		this.setWheelCSSProperties()
+		this.claimedPrize = props.claimedPrize
+		this.pointerImage = props.pointerImage ?? defaultPointerImage
+		this.wheelColors = { ...defaultWheelColors, ...props.wheelColors }
+		this.segmentsColors = resolveSegmentsColors(props.segmentsColors)
 
+		props.root.appendChild(element)
+		this.renderButton(props.buttonText)
+		this.renderPrizes(props.prizes)
+		this.setWheelCSSProperties()
+		this.setLabelsCSSProperties(props.prizes)
 		if (this.claimedPrize !== null) {
 			this.renderClaimedPrize(this.claimedPrize)
 		}
-		this.fitWheelIntoRoot(root)
+		this.fitWheelIntoRoot(props.root)
 
 		return element
+	}
+
+	private renderButton(buttonText?: string) {
+		const button = this.getElement<HTMLButtonElement>(".spinning-wheel__button")
+		if (button === null) {
+			return
+		}
+
+		button.textContent = buttonText ?? defaultButtonText
 	}
 
 	private renderPrizes(prizes: Array<Prize>) {
@@ -106,72 +129,176 @@ export class UI {
 		index: number
 		prizeTemplateElement: HTMLElement
 	}) {
-		const { id, name, image } = prize
 		const prizeElement = prizeTemplateElement.cloneNode(true)
 		if (!isHtmlElement(prizeElement)) {
 			return null
 		}
 
-		prizeElement.dataset.id = id
-		prizeElement.setAttribute("aria-label", name)
+		prizeElement.dataset.id = prize.id
 		prizeElement.style.setProperty("--nth", `${index}`)
-		prizeElement.style.setProperty("--bg-image", `url("${CSS.escape(image)}")`)
+		if (prize.image !== undefined) {
+			prizeElement.style.setProperty(
+				"--bg-image",
+				`url("${CSS.escape(prize.image)}")`
+			)
+		} else {
+			const prizeIconElement = this.getElement(
+				`.spinning-wheel__prize-icon`,
+				prizeElement
+			)
+			if (prizeIconElement !== null) {
+				prizeIconElement.hidden = true
+			}
+		}
+
+		const prizeLabelElement = this.getElement(
+			`.spinning-wheel__prize-label`,
+			prizeElement
+		)
+		if (prizeLabelElement !== null) {
+			prizeLabelElement.textContent = prize.name
+		}
 
 		return prizeElement
 	}
 
 	private setWheelCSSProperties() {
+		const { iconSize, iconTop, sectorAngle } =
+			this.geometry.getSectorsGeometry()
+		const gradient = this.getGradient()
+
+		this.setCSSProperties({
+			"--prize-icon-size": `${iconSize}%`,
+			"--prize-icon-top": `${iconTop}%`,
+			"--sector-angle": `${sectorAngle}deg`,
+			"--wheel-gradient": gradient,
+			"--main-color": this.wheelColors.mainColor,
+			"--button-text-color": this.wheelColors.buttonTextColor,
+			"--prize-text-color": this.wheelColors.prizeTextColor,
+			"--prize-text-shadow-color": this.wheelColors.prizeTextShadowColor,
+			"--result-text-color": this.wheelColors.resultTextColor,
+			"--inset-shadow-color": this.wheelColors.insetShadowColor,
+			"--drop-shadow-color": this.wheelColors.dropShadowColor,
+			"--prize-icon-opacity": `${this.wheelColors.prizeIconOpacity}`,
+			"--pointer-image": `url("${CSS.escape(this.pointerImage)}")`,
+		})
+	}
+
+	private setLabelsCSSProperties(prizes: Array<Prize>) {
+		const prizeLabelElement = this.getElement(".spinning-wheel__prize-label")
+		const resultLabelElement = this.getElement(".spinning-wheel__result-label")
+		if (prizeLabelElement === null || resultLabelElement === null) {
+			return
+		}
+
+		const names = prizes.map((prize) => prize.name)
+		const prizeFit = this.labelFitter.fit({
+			texts: names,
+			font: this.labelFitter.readFont(prizeLabelElement),
+			getAvailableWidth: (height) => this.geometry.getLabelRect(height).width,
+		})
+		const labelRect = this.geometry.getLabelRect(prizeFit.height)
+		const resultFit = this.labelFitter.fit({
+			texts: names,
+			font: this.labelFitter.readFont(resultLabelElement),
+			getAvailableWidth: () => this.labelFitter.resultWidthPercent,
+			maxFontRatio: this.labelFitter.resultMaxFontRatio,
+		})
+
+		this.setCSSProperties({
+			"--label-line-height": `${this.labelFitter.lineHeight}`,
+			"--prize-label-top": `${labelRect.top}%`,
+			"--prize-label-width": `${labelRect.width}%`,
+			"--prize-label-height": `${labelRect.height}%`,
+			"--prize-label-font-ratio": `${prizeFit.fontRatio}`,
+			"--result-label-width": `${this.labelFitter.resultWidthPercent}%`,
+			"--result-label-font-ratio": `${resultFit.fontRatio}`,
+		})
+	}
+
+	private setCSSProperties(properties: Record<string, string>) {
 		if (this.element === undefined) {
 			return
 		}
 
-		const { iconSize, sectorAngle, xOffset, yOffset } =
-			this.geometry.getSectorsGeometry()
-		const gradient = this.getGradient()
-
-		const wheelProperties = {
-			"--icon-size": `${iconSize}%`,
-			"--sector-angle": `${sectorAngle}deg`,
-			"--x-offset": `${xOffset}%`,
-			"--y-offset": `${yOffset}%`,
-			"--wheel-gradient": gradient,
-		}
-
-		for (const [key, value] of Object.entries(wheelProperties)) {
+		for (const [key, value] of Object.entries(properties)) {
 			this.element.style.setProperty(key, value)
 		}
 	}
 
 	private getGradient() {
-		const { hueStart, hueEnd, saturation, lightness } = this.wheelColors
-		const { startAngle, gradientSteps } = this.geometry.getGradientInfo({
-			hueStart,
-			hueEnd,
+		const { startAngle, segments } = this.geometry.getSegmentsAngles()
+		const colors = this.getSegmentsColors(segments.length)
+		const colorStops = segments.map(
+			(segment, index) =>
+				`${colors[index]} ${segment.startAngle}deg ${segment.endAngle}deg`
+		)
+
+		return `conic-gradient(from ${startAngle}deg, ${colorStops.join(", ")})`
+	}
+
+	private getSegmentsColors(segmentsCount: number) {
+		const segmentsColors = this.segmentsColors
+		if ("colors" in segmentsColors) {
+			const { colors } = segmentsColors
+			return Array.from(
+				{ length: segmentsCount },
+				(_, index) => colors[index % colors.length]
+			)
+		}
+
+		const { hueStart, hueEnd, saturation, lightness, colorsRepeat } =
+			segmentsColors
+		return Array.from({ length: segmentsCount }, (_, index) => {
+			const cyclePosition = ((index * colorsRepeat) / segmentsCount) % 1
+			const hue = hueStart + cyclePosition * (hueEnd - hueStart)
+			return `hsl(${hue}deg ${saturation}% ${lightness}%)`
 		})
-		const colorStops = gradientSteps.map(({ hue, startAngle, endAngle }) => {
-			const color = `hsl(${hue}deg ${saturation}% ${lightness}%)`
-			const colorStop = `${color} ${startAngle}deg ${endAngle}deg`
-			return colorStop
-		})
-		const gradient = `conic-gradient(from ${startAngle}deg, ${colorStops.join(", ")})`
-		return gradient
 	}
 
 	renderClaimedPrize(prize: Prize) {
-		const resultElement = this.getElement(`.spinning-wheel__result`)
+		const resultElement = this.renderResult(prize)
 		if (resultElement === null) {
 			return
 		}
 
-		resultElement.style.setProperty(
-			"--bg-image",
-			`url("${CSS.escape(prize.image)}")`
-		)
 		resultElement.classList.add("spinning-wheel__result--visible")
 		resultElement.classList.add("spinning-wheel__result--revealed")
 		this.element?.classList.add("spinning-wheel--result-shown")
 
 		this.toggleButtonDisabled(true)
+	}
+
+	private renderResult(prize: Prize) {
+		const resultElement = this.getElement(`.spinning-wheel__result`)
+		if (resultElement === null) {
+			return null
+		}
+
+		const resultIconElement = this.getElement(
+			`.spinning-wheel__result-icon`,
+			resultElement
+		)
+		if (resultIconElement !== null) {
+			if (prize.image === undefined) {
+				resultIconElement.hidden = true
+			} else {
+				resultElement.style.setProperty(
+					"--bg-image",
+					`url("${CSS.escape(prize.image)}")`
+				)
+			}
+		}
+
+		const resultLabelElement = this.getElement(
+			`.spinning-wheel__result-label`,
+			resultElement
+		)
+		if (resultLabelElement !== null) {
+			resultLabelElement.textContent = prize.name
+		}
+
+		return resultElement
 	}
 
 	fitWheelIntoRoot(root: HTMLElement) {
@@ -264,22 +391,32 @@ export class UI {
 		const prizeElement = this.getElement(
 			`.spinning-wheel__prize[data-id="${CSS.escape(prize.id)}"]`
 		)
-		const resultElement = this.getElement(`.spinning-wheel__result`)
-		if (wheel === null || prizeElement === null || resultElement === null) {
+		const prizeLabelElement = this.getElement(
+			`.spinning-wheel__prize-label`,
+			prizeElement ?? undefined
+		)
+		const resultElement = this.renderResult(prize)
+		if (
+			wheel === null ||
+			prizeLabelElement === null ||
+			resultElement === null
+		) {
 			return
 		}
 
 		return this.animator.animateResult({
 			element: this.element,
 			wheel,
-			prizeElement,
+			prizeRect: prizeLabelElement.getBoundingClientRect(),
 			resultElement,
 			prizeIndex,
-			prize,
 		})
 	}
 
-	private getElement<T extends HTMLElement>(selector?: string): T | null {
+	private getElement<T extends HTMLElement>(
+		selector?: string,
+		parent?: HTMLElement
+	): T | null {
 		if (this.element === undefined) {
 			return null
 		}
@@ -288,6 +425,20 @@ export class UI {
 			return (this.element as T) ?? null
 		}
 
-		return (this.element.querySelector(selector) as T) ?? null
+		const parentElement = parent ?? this.element
+
+		return (parentElement.querySelector(selector) as T) ?? null
 	}
+}
+
+function resolveSegmentsColors(
+	segmentsColors?: SegmentsColors
+): ResolvedSegmentsColors {
+	if (segmentsColors !== undefined && "colors" in segmentsColors) {
+		return segmentsColors.colors.length > 0
+			? segmentsColors
+			: defaultSegmentsColors
+	}
+
+	return { ...defaultSegmentsColors, ...segmentsColors }
 }

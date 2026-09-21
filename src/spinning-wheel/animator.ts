@@ -1,11 +1,11 @@
-import { defaultWheelSpinOptions } from "./defaults"
+import { defaultSpinOptions, reducedMotionSpinOptions } from "./defaults"
 import { Geometry } from "./geometry"
-import { getRandomInteger, wait } from "./helpers"
-import { Prize, WheelSpinOptions } from "./types"
+import { getRandomInteger, isPreferReducedMotion, wait } from "./helpers"
+import { SpinOptions } from "./types"
 
 export class Animator {
 	private readonly geometry: Geometry
-	private wheelSpinOptions: Required<WheelSpinOptions> = defaultWheelSpinOptions
+	private spinOptions: Required<SpinOptions> = defaultSpinOptions
 
 	private finalAngle = 0
 
@@ -13,15 +13,15 @@ export class Animator {
 		this.geometry = geometry
 	}
 
-	setProps(props: { wheelSpinOptions?: WheelSpinOptions }) {
-		this.wheelSpinOptions = {
-			...defaultWheelSpinOptions,
-			...(props.wheelSpinOptions ?? {}),
+	setProps(props: { spinOptions?: SpinOptions }) {
+		this.spinOptions = {
+			...defaultSpinOptions,
+			...(props.spinOptions ?? {}),
 		}
 	}
 
 	clear() {
-		this.wheelSpinOptions = defaultWheelSpinOptions
+		this.spinOptions = defaultSpinOptions
 		this.finalAngle = 0
 	}
 
@@ -34,17 +34,29 @@ export class Animator {
 	}) {
 		this.finalAngle = this.geometry.getRandomAngleForSegmentIndex(prizeIndex)
 		const { minTurns, maxTurns, minSpinMs, maxSpinMs, windupMs, windupDeg } =
-			this.wheelSpinOptions
+			this.getSpinOptions()
 		const turns = getRandomInteger({ min: minTurns, max: maxTurns })
 		const endDeg = turns * 360 + this.finalAngle
 		const spinMs = getRandomInteger({
 			min: minSpinMs,
 			max: maxSpinMs,
 		})
+
+		if (windupMs <= 0) {
+			return wheel.animate(
+				[{ transform: "rotate(0deg)" }, { transform: `rotate(${endDeg}deg)` }],
+				{
+					duration: spinMs,
+					fill: "forwards",
+					easing: "ease-out",
+				}
+			)
+		}
+
 		const totalMs = windupMs + spinMs
 		const windupOffset = windupMs / totalMs
 
-		const animation = wheel.animate(
+		return wheel.animate(
 			[
 				{ transform: "rotate(0deg)", offset: 0, easing: "ease-in-out" },
 				{
@@ -56,50 +68,49 @@ export class Animator {
 			],
 			{ duration: totalMs, fill: "forwards" }
 		)
-		return animation
 	}
 
 	async animateResult({
 		element,
 		wheel,
-		prizeElement,
+		prizeRect,
 		resultElement,
 		prizeIndex,
-		prize,
 	}: {
 		element: HTMLElement
 		wheel: HTMLElement
 		resultElement: HTMLElement
 		prizeIndex: number
-		prize: Prize
-		prizeElement: HTMLElement
+		prizeRect: {
+			top: number
+			left: number
+			width: number
+			height: number
+		}
 	}) {
 		const resultSize = resultElement.offsetWidth
 		if (resultSize === 0) {
 			return
 		}
 
-		await wait(this.wheelSpinOptions.pauseAfterSpinMs)
+		if (isPreferReducedMotion()) {
+			this.revealResult({ element, resultElement })
+			return
+		}
 
-		// Layout size (not AABB) so rotation does not inflate the scale
-		const scale = prizeElement.offsetWidth / resultSize
-
-		const angle = this.geometry.getAngleOfPrize({
-			segmentIndex: prizeIndex,
-			wheelAngle: this.finalAngle,
-		})
-
-		const prizeRect = prizeElement.getBoundingClientRect()
+		const scale = prizeRect.width / resultSize
 		const wheelRect = wheel.getBoundingClientRect()
 		const { dx, dy } = this.geometry.getPrizeOffset({
 			prizeRect,
 			wheelRect,
 		})
+		const angle = this.geometry.getAngleOfPrize({
+			segmentIndex: prizeIndex,
+			wheelAngle: this.finalAngle,
+		})
 
-		resultElement.style.setProperty(
-			"--bg-image",
-			`url("${CSS.escape(prize.image)}")`
-		)
+		await wait(this.spinOptions.pauseAfterSpinMs)
+
 		resultElement.style.transition = "none"
 		resultElement.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) rotate(${angle}deg) scale(${scale})`
 		resultElement.classList.add("spinning-wheel__result--visible")
@@ -108,15 +119,30 @@ export class Animator {
 			requestAnimationFrame(() => {
 				requestAnimationFrame(() => {
 					resultElement.style.transition = ""
-					resultElement.classList.add("spinning-wheel__result--revealed")
-					resultElement.style.transform =
-						"translate(-50%, -50%) rotate(0deg) scale(1)"
-					element.classList.add("spinning-wheel--result-shown")
+					this.revealResult({ element, resultElement })
 					resultElement.addEventListener("transitionend", () => resolve(), {
 						once: true,
 					})
 				})
 			})
 		})
+	}
+
+	private getSpinOptions(): Required<SpinOptions> {
+		return isPreferReducedMotion() ? reducedMotionSpinOptions : this.spinOptions
+	}
+
+	private revealResult({
+		element,
+		resultElement,
+	}: {
+		element: HTMLElement
+		resultElement: HTMLElement
+	}) {
+		resultElement.classList.add("spinning-wheel__result--visible")
+		resultElement.classList.add("spinning-wheel__result--revealed")
+		resultElement.style.transform =
+			"translate(-50%, -50%) rotate(0deg) scale(1)"
+		element.classList.add("spinning-wheel--result-shown")
 	}
 }

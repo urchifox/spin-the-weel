@@ -2,7 +2,7 @@ import { defineConfig } from "vite"
 import autoprefixer from "autoprefixer"
 
 export default defineConfig({
-	base: "/spin-the-weel/",
+	base: "/spin-the-wheel/",
 	server: {
 		port: 5173,
 	},
