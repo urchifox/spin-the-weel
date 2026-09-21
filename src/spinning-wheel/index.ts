@@ -3,6 +3,7 @@ import { Prize, SpinningWheelMountProps, SpinningWheelProps } from "./types"
 import { Spinner } from "./spinner"
 import { Geometry } from "./geometry"
 import { Animator } from "./animator"
+import { LabelFitter } from "./labelFitter"
 
 export class SpinningWheel {
 	private readonly id: SpinningWheelProps["id"]
@@ -12,6 +13,7 @@ export class SpinningWheel {
 
 	private readonly geometry: Geometry
 	private readonly animator: Animator
+	private readonly labelFitter: LabelFitter
 	private readonly ui: UI
 	private readonly spinner: Spinner
 
@@ -29,9 +31,11 @@ export class SpinningWheel {
 
 		this.geometry = new Geometry()
 		this.animator = new Animator(this.geometry)
+		this.labelFitter = new LabelFitter()
 		this.ui = new UI({
 			geometry: this.geometry,
 			animator: this.animator,
+			labelFitter: this.labelFitter,
 		})
 		this.spinner = new Spinner({
 			ui: this.ui,

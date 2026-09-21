@@ -35,15 +35,18 @@ export type SpinningWheelMountProps = {
 export type Prize = {
 	id: string
 	name: string
-	image: string
+	image?: string
 }
 
 export type WheelColors = {
 	mainColor?: string
-	textColor?: string
-	textShadowColor?: string
-	dropShadowColor?: string
+	buttonTextColor?: string
+	prizeTextColor?: string
+	prizeTextShadowColor?: string
+	resultTextColor?: string
 	insetShadowColor?: string
+	dropShadowColor?: string
+	prizeIconOpacity?: number
 }
 
 export type SegmentsColors = PredefinedSegmentsColors | GeneratedSegmentsColors

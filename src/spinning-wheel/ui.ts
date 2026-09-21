@@ -16,10 +16,12 @@ import {
 	defaultWheelColors,
 } from "./defaults"
 import { Animator } from "./animator"
+import { LabelFitter } from "./labelFitter"
 
 export class UI {
 	private readonly geometry: Geometry
 	private readonly animator: Animator
+	private readonly labelFitter: LabelFitter
 
 	private claimedPrize: Prize | null = null
 	private segmentsColors: ResolvedSegmentsColors = defaultSegmentsColors
@@ -27,9 +29,14 @@ export class UI {
 	private pointerImage: string = defaultPointerImage
 	private element?: HTMLElement
 
-	constructor(props: { geometry: Geometry; animator: Animator }) {
+	constructor(props: {
+		geometry: Geometry
+		animator: Animator
+		labelFitter: LabelFitter
+	}) {
 		this.geometry = props.geometry
 		this.animator = props.animator
+		this.labelFitter = props.labelFitter
 	}
 
 	clear() {
@@ -66,6 +73,7 @@ export class UI {
 		this.renderButton(props.buttonText)
 		this.renderPrizes(props.prizes)
 		this.setWheelCSSProperties()
+		this.setLabelsCSSProperties(props.prizes)
 		if (this.claimedPrize !== null) {
 			this.renderClaimedPrize(this.claimedPrize)
 		}
@@ -121,44 +129,99 @@ export class UI {
 		index: number
 		prizeTemplateElement: HTMLElement
 	}) {
-		const { id, name, image } = prize
 		const prizeElement = prizeTemplateElement.cloneNode(true)
 		if (!isHtmlElement(prizeElement)) {
 			return null
 		}
 
-		prizeElement.dataset.id = id
-		prizeElement.setAttribute("aria-label", name)
+		prizeElement.dataset.id = prize.id
 		prizeElement.style.setProperty("--nth", `${index}`)
-		prizeElement.style.setProperty("--bg-image", `url("${CSS.escape(image)}")`)
+		if (prize.image !== undefined) {
+			prizeElement.style.setProperty(
+				"--bg-image",
+				`url("${CSS.escape(prize.image)}")`
+			)
+		} else {
+			const prizeIconElement = this.getElement(
+				`.spinning-wheel__prize-icon`,
+				prizeElement
+			)
+			if (prizeIconElement !== null) {
+				prizeIconElement.hidden = true
+			}
+		}
+
+		const prizeLabelElement = this.getElement(
+			`.spinning-wheel__prize-label`,
+			prizeElement
+		)
+		if (prizeLabelElement !== null) {
+			prizeLabelElement.textContent = prize.name
+		}
 
 		return prizeElement
 	}
 
 	private setWheelCSSProperties() {
+		const { iconSize, iconTop, sectorAngle } =
+			this.geometry.getSectorsGeometry()
+		const gradient = this.getGradient()
+
+		this.setCSSProperties({
+			"--prize-icon-size": `${iconSize}%`,
+			"--prize-icon-top": `${iconTop}%`,
+			"--sector-angle": `${sectorAngle}deg`,
+			"--wheel-gradient": gradient,
+			"--main-color": this.wheelColors.mainColor,
+			"--button-text-color": this.wheelColors.buttonTextColor,
+			"--prize-text-color": this.wheelColors.prizeTextColor,
+			"--prize-text-shadow-color": this.wheelColors.prizeTextShadowColor,
+			"--result-text-color": this.wheelColors.resultTextColor,
+			"--inset-shadow-color": this.wheelColors.insetShadowColor,
+			"--drop-shadow-color": this.wheelColors.dropShadowColor,
+			"--prize-icon-opacity": `${this.wheelColors.prizeIconOpacity}`,
+			"--pointer-image": `url("${CSS.escape(this.pointerImage)}")`,
+		})
+	}
+
+	private setLabelsCSSProperties(prizes: Array<Prize>) {
+		const prizeLabelElement = this.getElement(".spinning-wheel__prize-label")
+		const resultLabelElement = this.getElement(".spinning-wheel__result-label")
+		if (prizeLabelElement === null || resultLabelElement === null) {
+			return
+		}
+
+		const names = prizes.map((prize) => prize.name)
+		const prizeFit = this.labelFitter.fit({
+			texts: names,
+			font: this.labelFitter.readFont(prizeLabelElement),
+			getAvailableWidth: (height) => this.geometry.getLabelRect(height).width,
+		})
+		const labelRect = this.geometry.getLabelRect(prizeFit.height)
+		const resultFit = this.labelFitter.fit({
+			texts: names,
+			font: this.labelFitter.readFont(resultLabelElement),
+			getAvailableWidth: () => this.labelFitter.resultWidthPercent,
+			maxFontRatio: this.labelFitter.resultMaxFontRatio,
+		})
+
+		this.setCSSProperties({
+			"--label-line-height": `${this.labelFitter.lineHeight}`,
+			"--prize-label-top": `${labelRect.top}%`,
+			"--prize-label-width": `${labelRect.width}%`,
+			"--prize-label-height": `${labelRect.height}%`,
+			"--prize-label-font-ratio": `${prizeFit.fontRatio}`,
+			"--result-label-width": `${this.labelFitter.resultWidthPercent}%`,
+			"--result-label-font-ratio": `${resultFit.fontRatio}`,
+		})
+	}
+
+	private setCSSProperties(properties: Record<string, string>) {
 		if (this.element === undefined) {
 			return
 		}
 
-		const { iconSize, sectorAngle, xOffset, yOffset } =
-			this.geometry.getSectorsGeometry()
-		const gradient = this.getGradient()
-
-		const wheelProperties = {
-			"--icon-size": `${iconSize}%`,
-			"--sector-angle": `${sectorAngle}deg`,
-			"--x-offset": `${xOffset}%`,
-			"--y-offset": `${yOffset}%`,
-			"--wheel-gradient": gradient,
-			"--main-color": this.wheelColors.mainColor,
-			"--text-color": this.wheelColors.textColor,
-			"--text-shadow-color": this.wheelColors.textShadowColor,
-			"--inset-shadow-color": this.wheelColors.insetShadowColor,
-			"--drop-shadow-color": this.wheelColors.dropShadowColor,
-			"--pointer-image": `url("${CSS.escape(this.pointerImage)}")`,
-		}
-
-		for (const [key, value] of Object.entries(wheelProperties)) {
+		for (const [key, value] of Object.entries(properties)) {
 			this.element.style.setProperty(key, value)
 		}
 	}
@@ -194,20 +257,48 @@ export class UI {
 	}
 
 	renderClaimedPrize(prize: Prize) {
-		const resultElement = this.getElement(`.spinning-wheel__result`)
+		const resultElement = this.renderResult(prize)
 		if (resultElement === null) {
 			return
 		}
 
-		resultElement.style.setProperty(
-			"--bg-image",
-			`url("${CSS.escape(prize.image)}")`
-		)
 		resultElement.classList.add("spinning-wheel__result--visible")
 		resultElement.classList.add("spinning-wheel__result--revealed")
 		this.element?.classList.add("spinning-wheel--result-shown")
 
 		this.toggleButtonDisabled(true)
+	}
+
+	private renderResult(prize: Prize) {
+		const resultElement = this.getElement(`.spinning-wheel__result`)
+		if (resultElement === null) {
+			return null
+		}
+
+		const resultIconElement = this.getElement(
+			`.spinning-wheel__result-icon`,
+			resultElement
+		)
+		if (resultIconElement !== null) {
+			if (prize.image === undefined) {
+				resultIconElement.hidden = true
+			} else {
+				resultElement.style.setProperty(
+					"--bg-image",
+					`url("${CSS.escape(prize.image)}")`
+				)
+			}
+		}
+
+		const resultLabelElement = this.getElement(
+			`.spinning-wheel__result-label`,
+			resultElement
+		)
+		if (resultLabelElement !== null) {
+			resultLabelElement.textContent = prize.name
+		}
+
+		return resultElement
 	}
 
 	fitWheelIntoRoot(root: HTMLElement) {
@@ -300,22 +391,32 @@ export class UI {
 		const prizeElement = this.getElement(
 			`.spinning-wheel__prize[data-id="${CSS.escape(prize.id)}"]`
 		)
-		const resultElement = this.getElement(`.spinning-wheel__result`)
-		if (wheel === null || prizeElement === null || resultElement === null) {
+		const prizeLabelElement = this.getElement(
+			`.spinning-wheel__prize-label`,
+			prizeElement ?? undefined
+		)
+		const resultElement = this.renderResult(prize)
+		if (
+			wheel === null ||
+			prizeLabelElement === null ||
+			resultElement === null
+		) {
 			return
 		}
 
 		return this.animator.animateResult({
 			element: this.element,
 			wheel,
-			prizeElement,
+			prizeRect: prizeLabelElement.getBoundingClientRect(),
 			resultElement,
 			prizeIndex,
-			prize,
 		})
 	}
 
-	private getElement<T extends HTMLElement>(selector?: string): T | null {
+	private getElement<T extends HTMLElement>(
+		selector?: string,
+		parent?: HTMLElement
+	): T | null {
 		if (this.element === undefined) {
 			return null
 		}
@@ -324,7 +425,9 @@ export class UI {
 			return (this.element as T) ?? null
 		}
 
-		return (this.element.querySelector(selector) as T) ?? null
+		const parentElement = parent ?? this.element
+
+		return (parentElement.querySelector(selector) as T) ?? null
 	}
 }
 

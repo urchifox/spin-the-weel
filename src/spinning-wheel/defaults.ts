@@ -4,10 +4,13 @@ export { default as defaultPointerImage } from "./images/pointer.png"
 
 export const defaultWheelColors = {
 	mainColor: "rgb(252 216 30)",
-	textColor: "rgb(255 255 255)",
-	textShadowColor: "rgb(99 10 3)",
+	buttonTextColor: "rgb(138 33 4)",
+	prizeTextColor: "rgb(255 255 255)",
+	prizeTextShadowColor: "rgb(70 15 0 / 65%)",
+	resultTextColor: "rgb(138 33 4)",
 	insetShadowColor: "rgb(240 120 2)",
 	dropShadowColor: "rgb(0 0 0 / 20%)",
+	prizeIconOpacity: 0.3,
 } satisfies Readonly<Required<WheelColors>>
 
 export const defaultSegmentsColors = {

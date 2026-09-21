@@ -9,8 +9,10 @@ export class Geometry {
 	private sectorAngle = this.fullWheelAngle / this.segmentsCount
 	private halfSectorAngle = this.sectorAngle / 2
 
+	private readonly centre = 50
 	private readonly outerRadius = 48
 	private readonly fit = 0.94
+	private readonly labelFit = 0.9
 
 	setProps({ segmentsCount }: { segmentsCount: number }) {
 		this.segmentsCount = Math.max(this.minSegmentsCount, segmentsCount)
@@ -22,23 +24,41 @@ export class Geometry {
 		this.setProps({ segmentsCount: this.minSegmentsCount })
 	}
 
-	getSectorsGeometry() {
-		const sectorAngle = this.sectorAngle
+	// All lengths below are percentages of the wheel size, so they survive resizes
 
-		const halfAngleRad = (this.halfSectorAngle * Math.PI) / this.halfWheelAngle
-		const cotHalf = 1 / Math.tan(halfAngleRad)
+	getSectorsGeometry() {
+		const cotHalf = this.getCotHalfSector()
 		const A = cotHalf + 2
 		const denom = Math.sqrt(1 + A * A)
-		const iconSize = (2 * this.outerRadius * this.fit) / denom
+		const iconSize = (2 * this.getContentRadius()) / denom
 		const innerRadius = (iconSize * cotHalf) / 2
-		const xOffset = 50
-		const yOffset = (innerRadius / iconSize + 1) * 100
 
 		return {
+			sectorAngle: this.sectorAngle,
 			iconSize,
-			sectorAngle,
-			xOffset,
-			yOffset,
+			iconTop: this.centre - innerRadius - iconSize,
+		}
+	}
+
+	getLabelRect(height: number) {
+		const cotHalf = this.getCotHalfSector()
+		const squaredCotHalf = cotHalf * cotHalf
+		const radius = this.getContentRadius()
+		const discriminant =
+			squaredCotHalf * height * height -
+			(1 + squaredCotHalf) * (height * height - radius * radius)
+		if (discriminant <= 0) {
+			return { width: 0, height, top: this.centre }
+		}
+
+		const halfWidth =
+			(Math.sqrt(discriminant) - cotHalf * height) / (1 + squaredCotHalf)
+		const innerRadius = halfWidth * cotHalf
+
+		return {
+			width: 2 * halfWidth * this.labelFit,
+			height,
+			top: this.centre - innerRadius - height,
 		}
 	}
 
@@ -49,7 +69,7 @@ export class Geometry {
 		}))
 
 		// Offset so the first segment is centred under the pointer
-		const startAngle = this.halfSectorAngle
+		const startAngle = -this.halfSectorAngle
 
 		return {
 			startAngle,
@@ -116,5 +136,14 @@ export class Geometry {
 			dx,
 			dy,
 		}
+	}
+
+	private getContentRadius() {
+		return this.outerRadius * this.fit
+	}
+
+	private getCotHalfSector() {
+		const halfAngleRad = (this.halfSectorAngle * Math.PI) / this.halfWheelAngle
+		return 1 / Math.tan(halfAngleRad)
 	}
 }

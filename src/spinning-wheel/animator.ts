@@ -1,7 +1,7 @@
 import { defaultSpinOptions } from "./defaults"
 import { Geometry } from "./geometry"
 import { getRandomInteger, wait } from "./helpers"
-import { Prize, SpinOptions } from "./types"
+import { SpinOptions } from "./types"
 
 export class Animator {
 	private readonly geometry: Geometry
@@ -62,44 +62,39 @@ export class Animator {
 	async animateResult({
 		element,
 		wheel,
-		prizeElement,
+		prizeRect,
 		resultElement,
 		prizeIndex,
-		prize,
 	}: {
 		element: HTMLElement
 		wheel: HTMLElement
 		resultElement: HTMLElement
 		prizeIndex: number
-		prize: Prize
-		prizeElement: HTMLElement
+		prizeRect: {
+			top: number
+			left: number
+			width: number
+			height: number
+		}
 	}) {
 		const resultSize = resultElement.offsetWidth
 		if (resultSize === 0) {
 			return
 		}
 
-		await wait(this.spinOptions.pauseAfterSpinMs)
-
-		// Layout size (not AABB) so rotation does not inflate the scale
-		const scale = prizeElement.offsetWidth / resultSize
-
-		const angle = this.geometry.getAngleOfPrize({
-			segmentIndex: prizeIndex,
-			wheelAngle: this.finalAngle,
-		})
-
-		const prizeRect = prizeElement.getBoundingClientRect()
+		const scale = prizeRect.width / resultSize
 		const wheelRect = wheel.getBoundingClientRect()
 		const { dx, dy } = this.geometry.getPrizeOffset({
 			prizeRect,
 			wheelRect,
 		})
+		const angle = this.geometry.getAngleOfPrize({
+			segmentIndex: prizeIndex,
+			wheelAngle: this.finalAngle,
+		})
 
-		resultElement.style.setProperty(
-			"--bg-image",
-			`url("${CSS.escape(prize.image)}")`
-		)
+		await wait(this.spinOptions.pauseAfterSpinMs)
+
 		resultElement.style.transition = "none"
 		resultElement.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) rotate(${angle}deg) scale(${scale})`
 		resultElement.classList.add("spinning-wheel__result--visible")
